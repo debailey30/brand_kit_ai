@@ -6,7 +6,7 @@ import { insertBrandKitSchema, insertBrandKitAssetSchema, insertGenerationSchema
 import Stripe from "stripe";
 import { generateImage } from "./imageGeneration";
 import { addWatermark } from "./watermark";
-import { saveImageToStorage } from "./objectStorage";
+import { ObjectStorageService } from "./objectStorage";
 import { randomUUID } from "crypto";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -399,7 +399,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Save to object storage
         const fileName = `${randomUUID()}.png`;
-        const imageUrl = await saveImageToStorage(finalBase64, fileName, true);
+        const objectStorageService = new ObjectStorageService();
+        const imageUrl = await objectStorageService.saveImageToStorage(finalBase64, fileName, true);
         
         // Save generation record
         const generation = await storage.createGeneration({

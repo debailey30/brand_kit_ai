@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 import { storage } from "./storage";
+import { ObjectStorageService } from "./objectStorage";
+import { addWatermark } from "./watermark";
 
 // This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
@@ -61,14 +63,29 @@ export async function generateImage(options: GenerateImageOptions, userId: strin
     throw new Error("Failed to generate image");
   }
   
-  const base64Image = response.data[0].b64_json;
+  let base64Image = response.data[0].b64_json;
   
   if (!base64Image) {
     throw new Error("Failed to generate image");
   }
   
+  // Apply watermark for free tier users
+  const hasWatermark = subscription.tier === "free";
+  if (hasWatermark) {
+    base64Image = addWatermark(base64Image);
+  }
+  
+  // Save to object storage
+  const objectStorageService = new ObjectStorageService();
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+  const imageUrl = await objectStorageService.saveImageToStorage(
+    base64Image,
+    fileName,
+    true // Always public for now
+  );
+  
   // Increment usage counter
   await storage.incrementGenerationsUsed(userId);
   
-  return base64Image;
+  return imageUrl;
 }
