@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Star, ShoppingCart, Download, Eye, Palette, Settings2 } from "lucide-react";
 import type { Template, TemplateVariant, TemplateControl } from "@shared/schema";
+import { TemplateCustomizationForm } from "./TemplateCustomizationForm";
 
 interface TemplateDetailModalProps {
   templateId: string | null;
@@ -24,6 +25,7 @@ export function TemplateDetailModal({
   onPurchase 
 }: TemplateDetailModalProps) {
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [customizations, setCustomizations] = useState<Record<string, any>>({});
 
   // Fetch template details
   const { data: template, isLoading: templateLoading } = useQuery<Template>({
@@ -54,6 +56,12 @@ export function TemplateDetailModal({
     if (template && onPurchase) {
       onPurchase(template.id, selectedVariantId || undefined);
     }
+  };
+
+  const handleCustomizationSubmit = (values: Record<string, any>) => {
+    setCustomizations(values);
+    // TODO: Integration with AI generation in task 8
+    console.log("Template customizations:", values);
   };
 
   const price = template ? parseFloat(template.price) : 0;
@@ -232,26 +240,18 @@ export function TemplateDetailModal({
                 <TabsContent value="customization" className="mt-4">
                   {controls.length > 0 ? (
                     <div className="space-y-4">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        This template includes {controls.length} customizable control(s).
-                        Purchase to unlock full customization.
-                      </p>
-                      <div className="space-y-3">
-                        {controls.map((control) => (
-                          <div key={control.id} className="p-3 border rounded-md">
-                            <div className="flex items-start justify-between mb-1">
-                              <h5 className="font-medium text-sm">{control.label}</h5>
-                              <Badge variant="outline" className="text-xs">
-                                {control.controlType}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              Key: {control.key}
-                              {control.defaultValue && ` • Default: ${control.defaultValue}`}
-                            </p>
-                          </div>
-                        ))}
+                      <div className="mb-4">
+                        <h4 className="font-medium mb-1">Customize Your Template</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Adjust the following options to personalize your brand assets.
+                        </p>
                       </div>
+                      <TemplateCustomizationForm
+                        controls={controls}
+                        onSubmit={handleCustomizationSubmit}
+                        defaultValues={customizations}
+                        submitLabel="Apply Customizations"
+                      />
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">
