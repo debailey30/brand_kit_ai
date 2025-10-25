@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TemplateCard, type Template as TemplateCardType } from "@/components/TemplateCard";
+import { TemplateDetailModal } from "@/components/TemplateDetailModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -52,6 +53,7 @@ export default function MarketplacePage() {
   const [selectedStyleTag, setSelectedStyleTag] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("popular");
   const [priceFilter, setPriceFilter] = useState<"all" | "free" | "paid">("all");
+  const [detailModalTemplateId, setDetailModalTemplateId] = useState<string | null>(null);
 
   // Fetch templates from API
   const { data: templates = [], isLoading } = useQuery<Template[]>({
@@ -138,11 +140,12 @@ export default function MarketplacePage() {
   };
 
   const handlePreview = (id: string) => {
-    console.log(`Preview template: ${id}`);
+    setDetailModalTemplateId(id);
   };
 
-  const handlePurchase = (id: string) => {
-    console.log(`Purchase template: ${id}`);
+  const handlePurchase = (templateId: string, variantId?: string) => {
+    console.log(`Purchase template: ${templateId}`, variantId ? `variant: ${variantId}` : '');
+    // TODO: Implement Stripe checkout
   };
 
   return (
@@ -338,12 +341,20 @@ export default function MarketplacePage() {
                     reviewCount: template.reviewCount,
                   }}
                   onPreview={handlePreview}
-                  onPurchase={handlePurchase}
+                  onPurchase={() => setDetailModalTemplateId(template.id)}
                 />
               ))}
             </div>
           </>
         )}
+
+        {/* Template Detail Modal */}
+        <TemplateDetailModal
+          templateId={detailModalTemplateId}
+          open={!!detailModalTemplateId}
+          onClose={() => setDetailModalTemplateId(null)}
+          onPurchase={handlePurchase}
+        />
       </div>
     </div>
   );
