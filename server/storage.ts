@@ -82,6 +82,7 @@ export interface IStorage {
   hasUserPurchasedTemplate(userId: string, templateId: string): Promise<boolean>;
   
   // Template variant operations
+  getTemplateVariant(variantId: string): Promise<TemplateVariant | undefined>;
   getTemplateVariants(templateId: string): Promise<TemplateVariant[]>;
   createTemplateVariant(variant: InsertTemplateVariant): Promise<TemplateVariant>;
   deleteTemplateVariant(id: string): Promise<void>;
@@ -383,6 +384,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Template variant operations
+  async getTemplateVariant(variantId: string): Promise<TemplateVariant | undefined> {
+    const [variant] = await db
+      .select()
+      .from(templateVariants)
+      .where(eq(templateVariants.id, variantId))
+      .limit(1);
+    return variant;
+  }
+
   async getTemplateVariants(templateId: string): Promise<TemplateVariant[]> {
     return await db
       .select()

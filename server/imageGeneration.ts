@@ -15,6 +15,9 @@ export interface GenerateImageOptions {
   aspectRatio: "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
   style: string;
   quality: number;
+  templateId?: string;
+  variantId?: string;
+  customizations?: Record<string, any>;
 }
 
 function aspectRatioToSize(aspectRatio: string): "1024x1024" | "1792x1024" | "1024x1792" {
@@ -32,6 +35,80 @@ function aspectRatioToSize(aspectRatio: string): "1024x1024" | "1792x1024" | "10
   }
 }
 
+async function buildTemplateEnhancedPrompt(
+  basePrompt: string,
+  style: string,
+  templateId?: string,
+  variantId?: string,
+  customizations?: Record<string, any>
+): Promise<string> {
+  // Start with base prompt and style
+  let enhancedPrompt = `${basePrompt}. Style: ${style}`;
+  
+  // If template-based, fetch template metadata and incorporate it
+  if (templateId) {
+    const template = await storage.getTemplate(templateId);
+    if (template) {
+      // Add template's AI prompt seed if available
+      if (template.aiPromptSeed) {
+        enhancedPrompt += `. ${template.aiPromptSeed}`;
+      }
+      
+      // Add use case context
+      if (template.useCase) {
+        enhancedPrompt += `. Use case: ${template.useCase}`;
+      }
+      
+      // Add style tags
+      if (template.styleTags && template.styleTags.length > 0) {
+        enhancedPrompt += `. Style attributes: ${template.styleTags.join(", ")}`;
+      }
+    }
+    
+    // Incorporate variant-specific details
+    if (variantId) {
+      const variant = await storage.getTemplateVariant(variantId);
+      if (variant) {
+        enhancedPrompt += `. Format: ${variant.formatSlug}, ${variant.orientation} orientation`;
+        if (variant.recommendedUsage) {
+          enhancedPrompt += `, optimized for ${variant.recommendedUsage}`;
+        }
+      }
+    }
+    
+    // Incorporate customizations
+    if (customizations && Object.keys(customizations).length > 0) {
+      const customizationDescriptions: string[] = [];
+      
+      for (const [key, value] of Object.entries(customizations)) {
+        if (value !== undefined && value !== null) {
+          // Format the customization based on its type
+          if (key.includes("color")) {
+            customizationDescriptions.push(`${key}: ${value}`);
+          } else if (key.includes("font")) {
+            customizationDescriptions.push(`using ${value} font`);
+          } else if (typeof value === "string" && value.trim()) {
+            customizationDescriptions.push(`${key}: "${value}"`);
+          } else if (typeof value === "number") {
+            customizationDescriptions.push(`${key}: ${value}`);
+          } else if (typeof value === "boolean") {
+            customizationDescriptions.push(`${key}: ${value ? "enabled" : "disabled"}`);
+          }
+        }
+      }
+      
+      if (customizationDescriptions.length > 0) {
+        enhancedPrompt += `. Customizations: ${customizationDescriptions.join(", ")}`;
+      }
+    }
+  }
+  
+  // Add general quality directive
+  enhancedPrompt += ". High quality, professional, detailed, polished design.";
+  
+  return enhancedPrompt;
+}
+
 export async function generateImage(options: GenerateImageOptions, userId: string): Promise<string> {
   // Check subscription and quota
   const subscription = await storage.getSubscription(userId);
@@ -47,8 +124,14 @@ export async function generateImage(options: GenerateImageOptions, userId: strin
     }
   }
   
-  // Build enhanced prompt with style
-  const enhancedPrompt = `${options.prompt}. Style: ${options.style}. High quality, professional, detailed.`;
+  // Build enhanced prompt with template metadata
+  const enhancedPrompt = await buildTemplateEnhancedPrompt(
+    options.prompt,
+    options.style,
+    options.templateId,
+    options.variantId,
+    options.customizations
+  );
   
   // Generate image using OpenAI
   const response = await openai.images.generate({

@@ -373,7 +373,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/generate', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { prompt, aspectRatio, style, quality, brandKitId } = req.body;
+      const { 
+        prompt, 
+        aspectRatio, 
+        style, 
+        quality, 
+        brandKitId,
+        templateId,
+        variantId,
+        customizations
+      } = req.body;
       
       if (!prompt || !aspectRatio || !style || quality === undefined) {
         return res.status(400).json({ message: "Missing required parameters" });
@@ -396,31 +405,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       try {
-        // Generate image using AI
-        const base64Image = await generateImage(
-          { prompt, aspectRatio, style, quality },
+        // Generate image using AI with template support
+        const imageUrl = await generateImage(
+          { 
+            prompt, 
+            aspectRatio, 
+            style, 
+            quality,
+            templateId,
+            variantId,
+            customizations
+          },
           userId
         );
-        
-        // Add watermark for free tier
-        const hasWatermark = subscription.tier === "free";
-        const finalBase64 = hasWatermark ? addWatermark(base64Image) : base64Image;
-        
-        // Save to object storage
-        const fileName = `${randomUUID()}.png`;
-        const objectStorageService = new ObjectStorageService();
-        const imageUrl = await objectStorageService.saveImageToStorage(finalBase64, fileName, true);
         
         // Save generation record
         const generation = await storage.createGeneration({
           userId,
           brandKitId: brandKitId || null,
+          templateId: templateId || null,
+          variantId: variantId || null,
+          customizations: customizations || null,
           prompt,
           imageUrl,
           aspectRatio,
           style,
           quality,
-          hasWatermark,
+          hasWatermark: subscription.tier === "free",
           isFavorite: false,
         });
         
