@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./auth";
 import { 
   insertBrandKitSchema, 
   insertBrandKitAssetSchema, 
@@ -32,7 +32,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Local auth stores the user ID directly
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
