@@ -1,0 +1,55 @@
+act as the developer at a company like google or apple, you are also an expert in app creation ideas that become extremely successful. using your expertise create an app that will generate a passive income and is scalible
+
+Please integrate the following Zoer built-in features:
+
+File Upload for uploading files
+Stripe Payment for payment processing
+AI Image Generation for generating images from text
+Authentication for user login, registration, and session management
+Database for data storage and management
+I'll design a scalable passive income app that leverages all the powerful Zoer built-in features. Based on my experience analyzing successful apps, I'm proposing a "Brand Kit AI" platform - a SaaS tool that helps small businesses and entrepreneurs create professional brand assets using AI.
+
+Why this will succeed:
+
+Recurring Revenue Model: Subscription-based with tiered pricing (freemium → pro → enterprise)
+Low Marginal Cost: AI generation scales infinitely without inventory
+High Demand Market: 33M+ small businesses in US alone need branding
+Network Effects: User-generated templates become marketplace assets
+Viral Growth: Watermarked free tier drives organic acquisition
+Monetization Strategy:
+
+Free Tier: 5 AI generations/month (watermarked)
+Pro Tier: $29/month - unlimited generations, no watermark, premium templates
+Enterprise Tier: $99/month - team collaboration, brand guidelines, API access
+Marketplace: 20% commission on user-created template sales
+Scalability Path:
+
+Phase 1: Individual creators (launch)
+Phase 2: Small business teams (3-6 months)
+Phase 3: Agency white-label (12 months)
+Phase 4: API for third-party integrations (18 months)
+Let me create the detailed requirements draft:
+
+Brand Kit AI - Professional Branding Platform
+Features
+User Authentication & Subscription ManagementComplete user registration, login, and profile management with role-based access control. Free users (5 generations/month with watermark), Pro users ($29/month unlimited), Enterprise users ($99/month with team features). Automatic subscription tier enforcement and upgrade prompts.
+AI Brand Asset GeneratorCore feature using AI Image Generation for creating logos, social media graphics, business cards, and marketing materials. Text-to-image mode for new designs from descriptions. Image-to-image mode for brand-consistent variations using uploaded reference images. Supports multiple aspect ratios (1:1 for logos, 16:9 for banners, 9:16 for stories). Generation quota tracking per subscription tier.
+Brand Kit ManagementUsers create and save brand kits containing colors, fonts, logo variations, and style preferences. File Upload feature for uploading brand assets (logos, reference images, fonts). Organized library with folders and tags. Version history for all generated assets. Export functionality for downloading complete brand kits.
+Template MarketplaceCommunity marketplace where Pro/Enterprise users can publish and sell their brand templates. File Upload for template preview images. 20% platform commission on sales. Rating and review system. Featured templates section. Search and filter by industry, style, and price.
+Stripe Payment IntegrationSubscription billing using Stripe Payment feature. Support for monthly and annual plans with automatic renewal. One-time payments for marketplace template purchases. Secure payment processing with customer portal for managing subscriptions. Webhook handling for subscription events (upgrades, downgrades, cancellations). Invoice generation and payment history.
+Team Collaboration (Enterprise)Enterprise tier feature for team workspaces. Invite team members with role-based permissions (Admin, Editor, Viewer). Shared brand kits and asset libraries. Comment and approval workflows. Activity logs and usage analytics per team member.
+Generation History & AnalyticsComplete history of all AI generations with thumbnails. Usage analytics dashboard showing generation count, popular styles, and subscription value. Download history and re-generation capabilities. Favorite/bookmark system for best results.
+Page Permission & Navigation ControlDynamic navigation based on subscription tier. Free users see: Dashboard, Generator (limited), Brand Kits (view only), Upgrade prompt. Pro users see: Full Generator, Brand Kit Manager, Marketplace (buy/sell), Analytics. Enterprise users see: All Pro features + Team Management, Advanced Analytics, API Access. Automatic feature gating with upgrade CTAs for locked features.
+Onboarding & Tutorial SystemInteractive onboarding flow for new users. Step-by-step tutorial for first AI generation. Sample brand kit templates to get started. Video tutorials and help documentation. In-app tooltips and feature highlights.
+Admin DashboardAdministrator panel for platform management. User subscription analytics and revenue metrics. Marketplace moderation and featured template curation. Usage statistics and AI generation monitoring. Customer support ticket system. Fraud detection and abuse prevention.
+Styles
+Primary Color
+Secondary Color
+Layout
+Modern SaaS dashboard with sidebar navigation. Card-based design for brand kits and generated assets. Responsive grid layout supporting desktop, tablet, and mobile. Sticky header with quick access to generation tools and subscription status.
+Typography
+Inter font family for clean, professional appearance. Clear hierarchy with bold headings and readable body text. Monospace font for technical details like API keys.
+Visual Design
+Gradient accents for premium feel. Glassmorphism effects for modal dialogs. Smooth animations for AI generation progress. Watermark overlay for free tier outputs. Premium badge indicators for Pro/Enterprise features.
+Interaction Patterns
+Drag-and-drop for file uploads. Real-time preview for AI generation parameters. Infinite scroll for marketplace and history. Toast notifications for actions and errors. Loading skeletons during AI processing. Confetti animation on successful subscription upgrade
