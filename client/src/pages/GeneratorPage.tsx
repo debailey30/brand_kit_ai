@@ -3,43 +3,89 @@ import { GeneratorControls, type GeneratorSettings } from "@/components/Generato
 import { GenerationPreview } from "@/components/GenerationPreview";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import socialImage from "@assets/generated_images/Social_media_graphics_showcase_ad808a32.png";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { Subscription, Generation } from "@shared/schema";
 
 export default function GeneratorPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [generatedImage, setGeneratedImage] = useState<string | undefined>(undefined);
+  const [generatedImage, setGeneratedImage] = useState<Generation | undefined>(undefined);
+  const { toast } = useToast();
 
-  const handleGenerate = (settings: GeneratorSettings) => {
-    console.log("Generating with settings:", settings);
+  // Fetch subscription for quota display
+  const { data: subscription } = useQuery<Subscription>({
+    queryKey: ["/api/subscription"],
+  });
+
+  const generateMutation = useMutation({
+    mutationFn: async (settings: GeneratorSettings) => {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        body: JSON.stringify(settings),
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to generate");
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data: Generation) => {
+      setGeneratedImage(data);
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/generations"] });
+      toast({
+        title: "Success!",
+        description: "Your brand asset has been generated",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Generation failed",
+        description: error.message || "Failed to generate image",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleGenerate = async (settings: GeneratorSettings) => {
     setIsGenerating(true);
     setProgress(0);
 
-    // Simulate generation progress
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsGenerating(false);
-          setGeneratedImage(socialImage); // todo: remove mock functionality
-          return 100;
-        }
-        return prev + 10;
-      });
+    // Simulate progress animation
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => Math.min(prev + 5, 90));
     }, 300);
+
+    try {
+      await generateMutation.mutateAsync(settings);
+      setProgress(100);
+    } catch (error) {
+      // Error handled by mutation
+    } finally {
+      clearInterval(progressInterval);
+      setIsGenerating(false);
+      setProgress(0);
+    }
   };
 
   const handleDownload = () => {
-    console.log("Download clicked");
+    if (generatedImage) {
+      // Open image in new tab for download
+      window.open(generatedImage.imageUrl, '_blank');
+    }
   };
 
   const handleRegenerate = () => {
-    console.log("Regenerate clicked");
     setGeneratedImage(undefined);
   };
 
   const handleBack = () => {
-    console.log("Back clicked");
+    window.location.href = "/dashboard";
   };
 
   return (
@@ -64,13 +110,13 @@ export default function GeneratorPage() {
             <GeneratorControls
               onGenerate={handleGenerate}
               isGenerating={isGenerating}
-              generationsRemaining={3}
+              generationsRemaining={subscription ? (subscription.tier === 'free' ? subscription.generationsLimit - subscription.generationsUsed : undefined) : undefined}
             />
           </div>
 
           <div className="lg:col-span-3">
             <GenerationPreview
-              imageUrl={generatedImage}
+              imageUrl={generatedImage?.imageUrl}
               isGenerating={isGenerating}
               progress={progress}
               onDownload={handleDownload}

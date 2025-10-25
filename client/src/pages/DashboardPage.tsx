@@ -2,100 +2,110 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BrandKitCard, type BrandKit } from "@/components/BrandKitCard";
-import { GenerationHistoryCard, type Generation } from "@/components/GenerationHistoryCard";
+import { BrandKitCard } from "@/components/BrandKitCard";
+import { GenerationHistoryCard } from "@/components/GenerationHistoryCard";
 import { QuotaIndicator } from "@/components/QuotaIndicator";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
-import { Plus, Sparkles, FolderOpen, Clock } from "lucide-react";
-import logoImage from "@assets/generated_images/Sample_brand_logo_mockup_4d82739b.png";
-import socialImage from "@assets/generated_images/Social_media_graphics_showcase_ad808a32.png";
-
-//todo: remove mock functionality
-const mockBrandKits: BrandKit[] = [
-  {
-    id: "1",
-    name: "Tech Startup Brand",
-    thumbnail: logoImage,
-    colors: ["#8B5CF6", "#3B82F6", "#10B981"],
-    assetCount: 12,
-    lastModified: "2 hours ago",
-    tags: ["Technology", "Modern"],
-  },
-  {
-    id: "2",
-    name: "Eco Business",
-    thumbnail: socialImage,
-    colors: ["#10B981", "#059669", "#34D399"],
-    assetCount: 8,
-    lastModified: "1 day ago",
-    tags: ["Eco-Friendly", "Nature"],
-  },
-  {
-    id: "3",
-    name: "Fashion Brand",
-    thumbnail: logoImage,
-    colors: ["#EC4899", "#F472B6", "#F9A8D4"],
-    assetCount: 15,
-    lastModified: "3 days ago",
-    tags: ["Fashion", "Elegant"],
-  },
-];
-
-const mockGenerations: Generation[] = [
-  {
-    id: "1",
-    thumbnail: socialImage,
-    prompt: "Modern tech startup logo with blue gradient and geometric shapes",
-    aspectRatio: "1:1",
-    createdAt: "2 hours ago",
-    isFavorite: true,
-  },
-  {
-    id: "2",
-    thumbnail: logoImage,
-    prompt: "Social media graphics for eco-friendly business",
-    aspectRatio: "16:9",
-    createdAt: "5 hours ago",
-  },
-  {
-    id: "3",
-    thumbnail: socialImage,
-    prompt: "Business card design with purple accent",
-    aspectRatio: "4:3",
-    createdAt: "1 day ago",
-  },
-  {
-    id: "4",
-    thumbnail: logoImage,
-    prompt: "Instagram story template minimalist style",
-    aspectRatio: "9:16",
-    createdAt: "2 days ago",
-    isFavorite: true,
-  },
-];
+import { Plus, Sparkles, FolderOpen, Clock, LogOut } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
+import type { Subscription, BrandKit as BrandKitType, Generation } from "@shared/schema";
 
 export default function DashboardPage() {
-  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
-  const userTier = "free"; // todo: remove mock functionality
-
+  const [, setLocation] = useLocation();
+  
+  // Fetch subscription
+  const { data: subscription, isLoading: subsLoading } = useQuery<Subscription>({
+    queryKey: ["/api/subscription"],
+  });
+  
+  // Fetch brand kits
+  const { data: brandKits = [], isLoading: kitsLoading } = useQuery<any[]>({
+    queryKey: ["/api/brand-kits"],
+  });
+  
+  // Fetch generations
+  const { data: generations = [], isLoading: gensLoading } = useQuery<Generation[]>({
+    queryKey: ["/api/generations"],
+  });
+  
   const handleCreateBrandKit = () => {
-    console.log("Create brand kit clicked");
+    setLocation("/generator");
   };
 
-  const handleUpgrade = () => {
-    console.log("Upgrade clicked");
-    setShowUpgradePrompt(false);
+  const handleUpgrade = async () => {
+    try {
+      const response = await fetch("/api/subscription/checkout", {
+        method: "POST",
+        body: JSON.stringify({ tier: "pro" }),
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      const data = await response.json();
+      
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error("Failed to create checkout session:", error);
+    }
   };
+  
+  const handleLogout = () => {
+    window.location.href = "/api/logout";
+  };
+  
+  const showUpgradePrompt = subscription?.tier === "free" && subscription.generationsUsed >= 4;
+
+  if (subsLoading || kitsLoading || gensLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-chart-2 flex items-center justify-center">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-xl font-bold">Brand Kit AI</span>
+          </div>
+          
+          <nav className="hidden md:flex items-center gap-6">
+            <a href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
+              Dashboard
+            </a>
+            <a href="/generator" className="text-sm font-medium hover:text-primary transition-colors">
+              Generator
+            </a>
+            <a href="/marketplace" className="text-sm font-medium hover:text-primary transition-colors">
+              Marketplace
+            </a>
+          </nav>
+          
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" size="icon" onClick={handleLogout} data-testid="button-logout">
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </header>
+      
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-3xl font-bold">Dashboard</h1>
             <Button onClick={handleCreateBrandKit} data-testid="button-create-brandkit">
               <Plus className="mr-2 h-4 w-4" />
-              New Brand Kit
+              Generate Assets
             </Button>
           </div>
           <p className="text-muted-foreground">Manage your brand assets and generations</p>
@@ -108,7 +118,13 @@ export default function DashboardPage() {
               <Sparkles className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <QuotaIndicator used={4} total={5} tier={userTier as any} />
+              {subscription && (
+                <QuotaIndicator 
+                  used={subscription.generationsUsed} 
+                  total={subscription.generationsLimit} 
+                  tier={subscription.tier} 
+                />
+              )}
             </CardContent>
           </Card>
 
@@ -118,7 +134,7 @@ export default function DashboardPage() {
               <FolderOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockBrandKits.length}</div>
+              <div className="text-2xl font-bold">{brandKits.length}</div>
               <p className="text-xs text-muted-foreground">Active brand kits</p>
             </CardContent>
           </Card>
@@ -129,7 +145,7 @@ export default function DashboardPage() {
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockGenerations.length}</div>
+              <div className="text-2xl font-bold">{generations.length}</div>
               <p className="text-xs text-muted-foreground">All time</p>
             </CardContent>
           </Card>
@@ -141,7 +157,6 @@ export default function DashboardPage() {
               feature="Unlock Unlimited Generations"
               description="You're getting close to your monthly limit. Upgrade to Pro for unlimited AI-powered brand asset generation."
               onUpgrade={handleUpgrade}
-              onDismiss={() => setShowUpgradePrompt(false)}
             />
           </div>
         )}
@@ -157,31 +172,62 @@ export default function DashboardPage() {
           </TabsList>
 
           <TabsContent value="brand-kits" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mockBrandKits.map((kit) => (
-                <BrandKitCard
-                  key={kit.id}
-                  brandKit={kit}
-                  onEdit={(id) => console.log(`Edit: ${id}`)}
-                  onDownload={(id) => console.log(`Download: ${id}`)}
-                  onDelete={(id) => console.log(`Delete: ${id}`)}
-                />
-              ))}
-            </div>
+            {brandKits.length === 0 ? (
+              <div className="text-center py-12">
+                <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-lg font-medium mb-2">No brand kits yet</p>
+                <p className="text-sm text-muted-foreground mb-4">Start generating assets to create your first brand kit</p>
+                <Button onClick={handleCreateBrandKit}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Generate Assets
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {brandKits.map((kit: any) => (
+                  <BrandKitCard
+                    key={kit.id}
+                    brandKit={{
+                      ...kit,
+                      lastModified: new Date(kit.updatedAt).toLocaleDateString(),
+                    }}
+                    onEdit={(id) => console.log(`Edit: ${id}`)}
+                    onDownload={(id) => console.log(`Download: ${id}`)}
+                    onDelete={(id) => console.log(`Delete: ${id}`)}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="generations" className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {mockGenerations.map((generation) => (
-                <GenerationHistoryCard
-                  key={generation.id}
-                  generation={generation}
-                  onDownload={(id) => console.log(`Download: ${id}`)}
-                  onToggleFavorite={(id) => console.log(`Toggle favorite: ${id}`)}
-                  onClick={(id) => console.log(`View: ${id}`)}
-                />
-              ))}
-            </div>
+            {generations.length === 0 ? (
+              <div className="text-center py-12">
+                <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-lg font-medium mb-2">No generations yet</p>
+                <p className="text-sm text-muted-foreground mb-4">Create your first AI-powered brand asset</p>
+                <Button onClick={handleCreateBrandKit}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Start Generating
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {generations.map((generation) => (
+                  <GenerationHistoryCard
+                    key={generation.id}
+                    generation={{
+                      ...generation,
+                      thumbnail: generation.imageUrl,
+                      createdAt: new Date(generation.createdAt || Date.now()).toLocaleDateString(),
+                    }}
+                    onDownload={(id) => console.log(`Download: ${id}`)}
+                    onToggleFavorite={(id) => console.log(`Toggle favorite: ${id}`)}
+                    onClick={(id) => console.log(`View: ${id}`)}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

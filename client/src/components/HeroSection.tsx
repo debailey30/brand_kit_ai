@@ -4,11 +4,11 @@ import heroImage from "@assets/generated_images/Professional_team_collaboration_
 
 export function HeroSection() {
   const handleGetStarted = () => {
-    console.log("Get Started clicked");
+    window.location.href = "/api/login";
   };
 
   const handleViewExamples = () => {
-    console.log("View Examples clicked");
+    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (

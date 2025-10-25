@@ -83,7 +83,16 @@ const features = [
 
 export default function LandingPage() {
   const handlePricingSelect = (tierName: string) => {
-    console.log(`Selected tier: ${tierName}`);
+    // Redirect to login if not authenticated, otherwise to checkout
+    window.location.href = "/api/login";
+  };
+
+  const handleGetStarted = () => {
+    window.location.href = "/api/login";
+  };
+
+  const handleSignIn = () => {
+    window.location.href = "/api/login";
   };
 
   return (
@@ -111,10 +120,10 @@ export default function LandingPage() {
           
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="ghost" data-testid="button-sign-in">
+            <Button variant="ghost" onClick={handleSignIn} data-testid="button-sign-in">
               Sign In
             </Button>
-            <Button data-testid="button-get-started">
+            <Button onClick={handleGetStarted} data-testid="button-get-started">
               Get Started
             </Button>
           </div>
