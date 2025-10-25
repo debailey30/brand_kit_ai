@@ -2,7 +2,16 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertBrandKitSchema, insertBrandKitAssetSchema, insertGenerationSchema, insertTemplateSchema } from "@shared/schema";
+import { 
+  insertBrandKitSchema, 
+  insertBrandKitAssetSchema, 
+  insertGenerationSchema, 
+  insertTemplateSchema,
+  insertTemplateVariantSchema,
+  insertTemplateControlSchema,
+  insertTemplateCustomizationSchema,
+  insertTemplateBundleSchema
+} from "@shared/schema";
 import Stripe from "stripe";
 import { generateImage } from "./imageGeneration";
 import { addWatermark } from "./watermark";
@@ -693,6 +702,280 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching purchases:", error);
       res.status(500).json({ message: "Failed to fetch purchases" });
+    }
+  });
+
+  // ============================================================================
+  // Template variant routes
+  // ============================================================================
+  
+  app.get('/api/templates/:templateId/variants', async (req, res) => {
+    try {
+      const variants = await storage.getTemplateVariants(req.params.templateId);
+      res.json(variants);
+    } catch (error) {
+      console.error("Error fetching variants:", error);
+      res.status(500).json({ message: "Failed to fetch variants" });
+    }
+  });
+  
+  app.post('/api/templates/:templateId/variants', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const template = await storage.getTemplate(req.params.templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      if (template.creatorId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      // Validate request body (excluding templateId from body)
+      const validatedData = insertTemplateVariantSchema.omit({ templateId: true }).parse(req.body);
+      
+      const variant = await storage.createTemplateVariant({
+        ...validatedData,
+        templateId: req.params.templateId
+      });
+      
+      res.json(variant);
+    } catch (error) {
+      console.error("Error creating variant:", error);
+      res.status(500).json({ message: "Failed to create variant" });
+    }
+  });
+  
+  app.delete('/api/templates/:templateId/variants/:variantId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const template = await storage.getTemplate(req.params.templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      if (template.creatorId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      // Verify variant belongs to this template
+      const variants = await storage.getTemplateVariants(req.params.templateId);
+      const variant = variants.find(v => v.id === req.params.variantId);
+      
+      if (!variant) {
+        return res.status(404).json({ message: "Variant not found or does not belong to this template" });
+      }
+      
+      await storage.deleteTemplateVariant(req.params.variantId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting variant:", error);
+      res.status(500).json({ message: "Failed to delete variant" });
+    }
+  });
+  
+  // ============================================================================
+  // Template control routes
+  // ============================================================================
+  
+  app.get('/api/templates/:templateId/controls', async (req, res) => {
+    try {
+      const controls = await storage.getTemplateControls(req.params.templateId);
+      res.json(controls);
+    } catch (error) {
+      console.error("Error fetching controls:", error);
+      res.status(500).json({ message: "Failed to fetch controls" });
+    }
+  });
+  
+  app.post('/api/templates/:templateId/controls', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const template = await storage.getTemplate(req.params.templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      if (template.creatorId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      // Validate request body (excluding templateId from body)
+      const validatedData = insertTemplateControlSchema.omit({ templateId: true }).parse(req.body);
+      
+      const control = await storage.createTemplateControl({
+        ...validatedData,
+        templateId: req.params.templateId
+      });
+      
+      res.json(control);
+    } catch (error) {
+      console.error("Error creating control:", error);
+      res.status(500).json({ message: "Failed to create control" });
+    }
+  });
+  
+  app.delete('/api/templates/:templateId/controls/:controlId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const template = await storage.getTemplate(req.params.templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      if (template.creatorId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      // Verify control belongs to this template
+      const controls = await storage.getTemplateControls(req.params.templateId);
+      const control = controls.find(c => c.id === req.params.controlId);
+      
+      if (!control) {
+        return res.status(404).json({ message: "Control not found or does not belong to this template" });
+      }
+      
+      await storage.deleteTemplateControl(req.params.controlId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting control:", error);
+      res.status(500).json({ message: "Failed to delete control" });
+    }
+  });
+  
+  // ============================================================================
+  // Template customization routes
+  // ============================================================================
+  
+  app.get('/api/customizations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const customizations = await storage.getUserCustomizations(userId);
+      res.json(customizations);
+    } catch (error) {
+      console.error("Error fetching customizations:", error);
+      res.status(500).json({ message: "Failed to fetch customizations" });
+    }
+  });
+  
+  app.get('/api/templates/:templateId/customizations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const customizations = await storage.getTemplateCustomizations(userId, req.params.templateId);
+      res.json(customizations);
+    } catch (error) {
+      console.error("Error fetching template customizations:", error);
+      res.status(500).json({ message: "Failed to fetch customizations" });
+    }
+  });
+  
+  app.post('/api/customizations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Validate request body (excluding userId from body)
+      const validatedData = insertTemplateCustomizationSchema.omit({ userId: true }).parse(req.body);
+      
+      const customization = await storage.createTemplateCustomization({
+        ...validatedData,
+        userId
+      });
+      res.json(customization);
+    } catch (error) {
+      console.error("Error creating customization:", error);
+      res.status(500).json({ message: "Failed to create customization" });
+    }
+  });
+  
+  app.patch('/api/customizations/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // First, get the customization to check ownership
+      const customizations = await storage.getUserCustomizations(userId);
+      const existing = customizations.find(c => c.id === req.params.id);
+      
+      if (!existing) {
+        return res.status(404).json({ message: "Customization not found or not authorized" });
+      }
+      
+      const customization = await storage.updateTemplateCustomization(req.params.id, req.body);
+      res.json(customization);
+    } catch (error) {
+      console.error("Error updating customization:", error);
+      res.status(500).json({ message: "Failed to update customization" });
+    }
+  });
+  
+  app.delete('/api/customizations/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Verify ownership before deletion
+      const customizations = await storage.getUserCustomizations(userId);
+      const existing = customizations.find(c => c.id === req.params.id);
+      
+      if (!existing) {
+        return res.status(404).json({ message: "Customization not found or not authorized" });
+      }
+      
+      await storage.deleteTemplateCustomization(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting customization:", error);
+      res.status(500).json({ message: "Failed to delete customization" });
+    }
+  });
+  
+  // ============================================================================
+  // Template bundle routes
+  // ============================================================================
+  
+  app.get('/api/bundles', async (req, res) => {
+    try {
+      const bundles = await storage.getTemplateBundles();
+      res.json(bundles);
+    } catch (error) {
+      console.error("Error fetching bundles:", error);
+      res.status(500).json({ message: "Failed to fetch bundles" });
+    }
+  });
+  
+  app.post('/api/bundles', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const subscription = await storage.getSubscription(userId);
+      
+      if (!subscription || subscription.tier === 'free') {
+        return res.status(403).json({ message: "Pro or Enterprise subscription required to create bundles" });
+      }
+      
+      // Validate request body (excluding creatorId from body)
+      const validatedData = insertTemplateBundleSchema.omit({ creatorId: true }).parse(req.body);
+      
+      const bundle = await storage.createTemplateBundle({
+        ...validatedData,
+        creatorId: userId
+      });
+      
+      res.json(bundle);
+    } catch (error) {
+      console.error("Error creating bundle:", error);
+      res.status(500).json({ message: "Failed to create bundle" });
+    }
+  });
+  
+  app.patch('/api/bundles/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const bundle = await storage.updateTemplateBundle(req.params.id, req.body);
+      res.json(bundle);
+    } catch (error) {
+      console.error("Error updating bundle:", error);
+      res.status(500).json({ message: "Failed to update bundle" });
     }
   });
 
