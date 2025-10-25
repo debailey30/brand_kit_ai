@@ -137,7 +137,15 @@ export const templates = pgTable("templates", {
   previewUrl: text("preview_url").notNull(),
   fileUrl: text("file_url").notNull(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  category: varchar("category", { enum: ["logo", "social", "print", "brand-kit", "other"] }).notNull(),
+  category: varchar("category", { enum: ["logo", "social-media", "business-card", "letterhead", "presentation", "ad-banner", "email-template", "web-hero", "brand-kit", "other"] }).notNull(),
+  useCase: text("use_case"),
+  industries: text("industries").array().default(sql`'{}'::text[]`),
+  styleTags: text("style_tags").array().default(sql`'{}'::text[]`),
+  aiPromptSeed: text("ai_prompt_seed"),
+  defaultPalette: jsonb("default_palette"),
+  fontStack: jsonb("font_stack"),
+  canvasWidth: integer("canvas_width"),
+  canvasHeight: integer("canvas_height"),
   isPremium: boolean("is_premium").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
   salesCount: integer("sales_count").notNull().default(0),
@@ -178,3 +186,99 @@ export const insertTemplatePurchaseSchema = createInsertSchema(templatePurchases
 
 export type InsertTemplatePurchase = z.infer<typeof insertTemplatePurchaseSchema>;
 export type TemplatePurchase = typeof templatePurchases.$inferSelect;
+
+// Template variants (different sizes/formats for each template)
+export const templateVariants = pgTable("template_variants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  templateId: varchar("template_id").notNull().references(() => templates.id, { onDelete: "cascade" }),
+  formatSlug: varchar("format_slug").notNull(),
+  name: text("name").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  orientation: varchar("orientation", { enum: ["portrait", "landscape", "square"] }).notNull(),
+  exportFormats: text("export_formats").array().default(sql`'{}'::text[]`),
+  recommendedUsage: text("recommended_usage"),
+  previewUrl: text("preview_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTemplateVariantSchema = createInsertSchema(templateVariants).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertTemplateVariant = z.infer<typeof insertTemplateVariantSchema>;
+export type TemplateVariant = typeof templateVariants.$inferSelect;
+
+// Template customization controls (color pickers, font selectors, etc.)
+export const templateControls = pgTable("template_controls", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  templateId: varchar("template_id").notNull().references(() => templates.id, { onDelete: "cascade" }),
+  controlType: varchar("control_type", { enum: ["color", "font", "text", "number", "select", "toggle"] }).notNull(),
+  key: varchar("key").notNull(),
+  label: text("label").notNull(),
+  defaultValue: text("default_value"),
+  options: jsonb("options"),
+  minValue: integer("min_value"),
+  maxValue: integer("max_value"),
+  required: boolean("required").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTemplateControlSchema = createInsertSchema(templateControls).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertTemplateControl = z.infer<typeof insertTemplateControlSchema>;
+export type TemplateControl = typeof templateControls.$inferSelect;
+
+// User template customizations (saved configurations)
+export const templateCustomizations = pgTable("template_customizations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  templateId: varchar("template_id").notNull().references(() => templates.id, { onDelete: "cascade" }),
+  variantId: varchar("variant_id").references(() => templateVariants.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  configuration: jsonb("configuration").notNull(),
+  brandKitId: varchar("brand_kit_id").references(() => brandKits.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertTemplateCustomizationSchema = createInsertSchema(templateCustomizations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertTemplateCustomization = z.infer<typeof insertTemplateCustomizationSchema>;
+export type TemplateCustomization = typeof templateCustomizations.$inferSelect;
+
+// Template bundles (multi-template packages)
+export const templateBundles = pgTable("template_bundles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  creatorId: varchar("creator_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  previewUrl: text("preview_url").notNull(),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  discount: decimal("discount", { precision: 5, scale: 2 }).default("0"),
+  templateIds: text("template_ids").array().notNull(),
+  isPremium: boolean("is_premium").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  salesCount: integer("sales_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertTemplateBundleSchema = createInsertSchema(templateBundles).omit({
+  id: true,
+  salesCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertTemplateBundle = z.infer<typeof insertTemplateBundleSchema>;
+export type TemplateBundle = typeof templateBundles.$inferSelect;

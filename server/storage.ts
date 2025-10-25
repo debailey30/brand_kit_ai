@@ -6,6 +6,10 @@ import {
   generations,
   templates,
   templatePurchases,
+  templateVariants,
+  templateControls,
+  templateCustomizations,
+  templateBundles,
   type User,
   type UpsertUser,
   type Subscription,
@@ -20,9 +24,17 @@ import {
   type InsertTemplate,
   type TemplatePurchase,
   type InsertTemplatePurchase,
+  type TemplateVariant,
+  type InsertTemplateVariant,
+  type TemplateControl,
+  type InsertTemplateControl,
+  type TemplateCustomization,
+  type InsertTemplateCustomization,
+  type TemplateBundle,
+  type InsertTemplateBundle,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, arrayContains } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -58,7 +70,7 @@ export interface IStorage {
   
   // Template operations
   getTemplate(id: string): Promise<Template | undefined>;
-  getTemplates(filters?: { category?: string; creatorId?: string; isActive?: boolean }): Promise<Template[]>;
+  getTemplates(filters?: { category?: string; creatorId?: string; isActive?: boolean; industries?: string[]; styleTags?: string[] }): Promise<Template[]>;
   createTemplate(template: InsertTemplate): Promise<Template>;
   updateTemplate(id: string, updates: Partial<Template>): Promise<Template>;
   deleteTemplate(id: string): Promise<void>;
@@ -68,6 +80,28 @@ export interface IStorage {
   getUserPurchases(userId: string): Promise<TemplatePurchase[]>;
   createTemplatePurchase(purchase: InsertTemplatePurchase): Promise<TemplatePurchase>;
   hasUserPurchasedTemplate(userId: string, templateId: string): Promise<boolean>;
+  
+  // Template variant operations
+  getTemplateVariants(templateId: string): Promise<TemplateVariant[]>;
+  createTemplateVariant(variant: InsertTemplateVariant): Promise<TemplateVariant>;
+  deleteTemplateVariant(id: string): Promise<void>;
+  
+  // Template control operations
+  getTemplateControls(templateId: string): Promise<TemplateControl[]>;
+  createTemplateControl(control: InsertTemplateControl): Promise<TemplateControl>;
+  deleteTemplateControl(id: string): Promise<void>;
+  
+  // Template customization operations
+  getUserCustomizations(userId: string): Promise<TemplateCustomization[]>;
+  getTemplateCustomizations(userId: string, templateId: string): Promise<TemplateCustomization[]>;
+  createTemplateCustomization(customization: InsertTemplateCustomization): Promise<TemplateCustomization>;
+  updateTemplateCustomization(id: string, updates: Partial<TemplateCustomization>): Promise<TemplateCustomization>;
+  deleteTemplateCustomization(id: string): Promise<void>;
+  
+  // Template bundle operations
+  getTemplateBundles(): Promise<TemplateBundle[]>;
+  createTemplateBundle(bundle: InsertTemplateBundle): Promise<TemplateBundle>;
+  updateTemplateBundle(id: string, updates: Partial<TemplateBundle>): Promise<TemplateBundle>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -253,18 +287,30 @@ export class DatabaseStorage implements IStorage {
     return template;
   }
 
-  async getTemplates(filters?: { category?: "logo" | "social" | "print" | "brand-kit" | "other"; creatorId?: string; isActive?: boolean }): Promise<Template[]> {
+  async getTemplates(filters?: { category?: string; creatorId?: string; isActive?: boolean; industries?: string[]; styleTags?: string[] }): Promise<Template[]> {
     let query = db.select().from(templates);
     
     const conditions = [];
     if (filters?.category) {
-      conditions.push(eq(templates.category, filters.category));
+      conditions.push(sql`${templates.category} = ${filters.category}`);
     }
     if (filters?.creatorId) {
       conditions.push(eq(templates.creatorId, filters.creatorId));
     }
     if (filters?.isActive !== undefined) {
       conditions.push(eq(templates.isActive, filters.isActive));
+    }
+    // Filter by industries (array contains check)
+    if (filters?.industries && filters.industries.length > 0) {
+      for (const industry of filters.industries) {
+        conditions.push(sql`${industry} = ANY(${templates.industries})`);
+      }
+    }
+    // Filter by style tags (array contains check)
+    if (filters?.styleTags && filters.styleTags.length > 0) {
+      for (const tag of filters.styleTags) {
+        conditions.push(sql`${tag} = ANY(${templates.styleTags})`);
+      }
     }
     
     if (conditions.length > 0) {
@@ -334,6 +380,117 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return !!purchase;
+  }
+
+  // Template variant operations
+  async getTemplateVariants(templateId: string): Promise<TemplateVariant[]> {
+    return await db
+      .select()
+      .from(templateVariants)
+      .where(eq(templateVariants.templateId, templateId))
+      .orderBy(templateVariants.formatSlug);
+  }
+
+  async createTemplateVariant(variant: InsertTemplateVariant): Promise<TemplateVariant> {
+    const [newVariant] = await db
+      .insert(templateVariants)
+      .values(variant)
+      .returning();
+    return newVariant;
+  }
+
+  async deleteTemplateVariant(id: string): Promise<void> {
+    await db.delete(templateVariants).where(eq(templateVariants.id, id));
+  }
+
+  // Template control operations
+  async getTemplateControls(templateId: string): Promise<TemplateControl[]> {
+    return await db
+      .select()
+      .from(templateControls)
+      .where(eq(templateControls.templateId, templateId))
+      .orderBy(templateControls.sortOrder);
+  }
+
+  async createTemplateControl(control: InsertTemplateControl): Promise<TemplateControl> {
+    const [newControl] = await db
+      .insert(templateControls)
+      .values(control)
+      .returning();
+    return newControl;
+  }
+
+  async deleteTemplateControl(id: string): Promise<void> {
+    await db.delete(templateControls).where(eq(templateControls.id, id));
+  }
+
+  // Template customization operations
+  async getUserCustomizations(userId: string): Promise<TemplateCustomization[]> {
+    return await db
+      .select()
+      .from(templateCustomizations)
+      .where(eq(templateCustomizations.userId, userId))
+      .orderBy(desc(templateCustomizations.updatedAt));
+  }
+
+  async getTemplateCustomizations(userId: string, templateId: string): Promise<TemplateCustomization[]> {
+    return await db
+      .select()
+      .from(templateCustomizations)
+      .where(
+        and(
+          eq(templateCustomizations.userId, userId),
+          eq(templateCustomizations.templateId, templateId)
+        )
+      )
+      .orderBy(desc(templateCustomizations.updatedAt));
+  }
+
+  async createTemplateCustomization(customization: InsertTemplateCustomization): Promise<TemplateCustomization> {
+    const [newCustomization] = await db
+      .insert(templateCustomizations)
+      .values(customization)
+      .returning();
+    return newCustomization;
+  }
+
+  async updateTemplateCustomization(id: string, updates: Partial<TemplateCustomization>): Promise<TemplateCustomization> {
+    const [updated] = await db
+      .update(templateCustomizations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(templateCustomizations.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTemplateCustomization(id: string): Promise<void> {
+    await db.delete(templateCustomizations).where(eq(templateCustomizations.id, id));
+  }
+
+  // Template bundle operations
+  async getTemplateBundles(): Promise<TemplateBundle[]> {
+    return await db
+      .select()
+      .from(templateBundles)
+      .where(eq(templateBundles.isActive, true))
+      .orderBy(desc(templateBundles.createdAt));
+  }
+
+  async createTemplateBundle(bundle: InsertTemplateBundle): Promise<TemplateBundle> {
+    const [newBundle] = await db
+      .insert(templateBundles)
+      .values(bundle)
+      .returning();
+    return newBundle;
+  }
+
+  async updateTemplateBundle(id: string, updates: Partial<TemplateBundle>): Promise<TemplateBundle> {
+    const [updated] = await db
+      .update(templateBundles)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(templateBundles.id, id))
+      .returning();
+    return updated;
   }
 }
 
