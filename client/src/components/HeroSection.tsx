@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight } from "lucide-react";
-import heroImage from "@assets/generated_images/Professional_team_collaboration_hero_feb0b269.png";
+const heroImage = "/storage/Professional_team_collaboration_hero_feb0b269.png";
 
 export function HeroSection() {
   const handleGetStarted = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/login";
   };
 
   const handleViewExamples = () => {

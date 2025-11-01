@@ -88,11 +88,18 @@ export default function LandingPage() {
   };
 
   const handleGetStarted = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/login";
   };
 
   const handleSignIn = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/login";
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -107,15 +114,15 @@ export default function LandingPage() {
           </div>
           
           <nav className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-sm font-medium hover:text-primary transition-colors">
+            <button onClick={() => scrollToSection('features')} className="text-sm font-medium hover:text-primary transition-colors">
               Features
-            </a>
-            <a href="#pricing" className="text-sm font-medium hover:text-primary transition-colors">
+            </button>
+            <button onClick={() => scrollToSection('pricing')} className="text-sm font-medium hover:text-primary transition-colors">
               Pricing
-            </a>
-            <a href="#marketplace" className="text-sm font-medium hover:text-primary transition-colors">
+            </button>
+            <button onClick={() => scrollToSection('marketplace')} className="text-sm font-medium hover:text-primary transition-colors">
               Marketplace
-            </a>
+            </button>
           </nav>
           
           <div className="flex items-center gap-2">
@@ -180,6 +187,166 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section id="about" className="py-20 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              About Brand Kit AI
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              We're on a mission to democratize brand creation by making professional design tools accessible to everyone through AI.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold mb-2">Our Mission</h3>
+                <p className="text-sm text-muted-foreground">Empower entrepreneurs and businesses with AI-driven brand creation tools.</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold mb-2">Our Vision</h3>
+                <p className="text-sm text-muted-foreground">Make professional branding accessible to everyone, regardless of design experience.</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold mb-2">Our Values</h3>
+                <p className="text-sm text-muted-foreground">Innovation, accessibility, and quality in everything we build.</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      <section id="blog" className="py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Latest from our Blog
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Insights, tips, and trends in AI-powered branding and design.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="hover-elevate">
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-2">The Future of AI in Branding</h3>
+                <p className="text-sm text-muted-foreground mb-4">How artificial intelligence is revolutionizing brand creation and what it means for designers.</p>
+                <Button variant="outline" size="sm">Read More</Button>
+              </CardContent>
+            </Card>
+            <Card className="hover-elevate">
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-2">Building a Strong Brand Identity</h3>
+                <p className="text-sm text-muted-foreground mb-4">Essential elements every business needs for a cohesive and memorable brand presence.</p>
+                <Button variant="outline" size="sm">Read More</Button>
+              </CardContent>
+            </Card>
+            <Card className="hover-elevate">
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-2">Design Trends for 2025</h3>
+                <p className="text-sm text-muted-foreground mb-4">Stay ahead of the curve with the latest design trends shaping the business world.</p>
+                <Button variant="outline" size="sm">Read More</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      <section id="careers" className="py-20 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Join Our Team
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Help us shape the future of AI-powered design. We're looking for passionate individuals to join our mission.
+            </p>
+          </div>
+          <div className="text-center">
+            <Button size="lg">View Open Positions</Button>
+          </div>
+        </div>
+      </section>
+
+      <section id="privacy" className="py-20">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">
+            Privacy Policy
+          </h2>
+          <div className="prose prose-gray max-w-none">
+            <p className="text-muted-foreground mb-6">
+              We are committed to protecting your privacy and ensuring the security of your personal information.
+            </p>
+            <h3 className="text-xl font-semibold mb-4">Information We Collect</h3>
+            <p className="text-muted-foreground mb-6">
+              We collect information you provide directly to us, such as when you create an account, use our services, or contact us for support.
+            </p>
+            <h3 className="text-xl font-semibold mb-4">How We Use Your Information</h3>
+            <p className="text-muted-foreground mb-6">
+              We use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.
+            </p>
+            <h3 className="text-xl font-semibold mb-4">Information Sharing</h3>
+            <p className="text-muted-foreground mb-6">
+              We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this policy.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="terms" className="py-20 bg-muted/30">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">
+            Terms of Service
+          </h2>
+          <div className="prose prose-gray max-w-none">
+            <p className="text-muted-foreground mb-6">
+              By using Brand Kit AI, you agree to these terms of service. Please read them carefully.
+            </p>
+            <h3 className="text-xl font-semibold mb-4">Acceptance of Terms</h3>
+            <p className="text-muted-foreground mb-6">
+              By accessing and using our services, you accept and agree to be bound by the terms and provision of this agreement.
+            </p>
+            <h3 className="text-xl font-semibold mb-4">Use License</h3>
+            <p className="text-muted-foreground mb-6">
+              We grant you a limited, non-exclusive, non-transferable license to use our services in accordance with these terms.
+            </p>
+            <h3 className="text-xl font-semibold mb-4">User Responsibilities</h3>
+            <p className="text-muted-foreground mb-6">
+              You are responsible for maintaining the confidentiality of your account and for all activities that occur under your account.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="license" className="py-20">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">
+            License Agreement
+          </h2>
+          <div className="prose prose-gray max-w-none">
+            <p className="text-muted-foreground mb-6">
+              This license agreement governs your use of content generated through Brand Kit AI.
+            </p>
+            <h3 className="text-xl font-semibold mb-4">Commercial Use</h3>
+            <p className="text-muted-foreground mb-6">
+              Paid subscribers receive a commercial license to use generated content for business purposes, including marketing materials and products.
+            </p>
+            <h3 className="text-xl font-semibold mb-4">Attribution</h3>
+            <p className="text-muted-foreground mb-6">
+              While not required, we appreciate attribution when you share your work created with our tools.
+            </p>
+            <h3 className="text-xl font-semibold mb-4">Restrictions</h3>
+            <p className="text-muted-foreground mb-6">
+              Generated content may not be used for illegal purposes, hate speech, or to infringe on intellectual property rights.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <footer className="border-t py-12 bg-muted/30">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
@@ -194,35 +361,35 @@ export default function LandingPage() {
                 Create professional brand assets with AI-powered technology.
               </p>
             </div>
-            
+
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Marketplace</a></li>
+                <li><button onClick={() => scrollToSection('features')} className="hover:text-foreground transition-colors">Features</button></li>
+                <li><button onClick={() => scrollToSection('pricing')} className="hover:text-foreground transition-colors">Pricing</button></li>
+                <li><button onClick={() => scrollToSection('marketplace')} className="hover:text-foreground transition-colors">Marketplace</button></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Careers</a></li>
+                <li><button onClick={() => scrollToSection('about')} className="hover:text-foreground transition-colors">About</button></li>
+                <li><button onClick={() => scrollToSection('blog')} className="hover:text-foreground transition-colors">Blog</button></li>
+                <li><button onClick={() => scrollToSection('careers')} className="hover:text-foreground transition-colors">Careers</button></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">License</a></li>
+                <li><button onClick={() => scrollToSection('privacy')} className="hover:text-foreground transition-colors">Privacy</button></li>
+                <li><button onClick={() => scrollToSection('terms')} className="hover:text-foreground transition-colors">Terms</button></li>
+                <li><button onClick={() => scrollToSection('license')} className="hover:text-foreground transition-colors">License</button></li>
               </ul>
             </div>
           </div>
-          
+
           <div className="pt-8 border-t text-center text-sm text-muted-foreground">
             © 2025 Brand Kit AI. All rights reserved.
           </div>

@@ -27,6 +27,7 @@ function Router() {
       {!isAuthenticated ? (
         <>
           <Route path="/" component={LandingPage} />
+          <Route path="/login" component={LandingPage} />
           <Route path="/marketplace" component={MarketplacePage} />
           <Route path="*">
             <Redirect to="/" />

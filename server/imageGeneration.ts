@@ -1,14 +1,20 @@
 import OpenAI from "openai";
 import { storage } from "./storage";
-import { ObjectStorageService } from "./objectStorage";
+import { localStorageService } from "./localStorage";
 import { addWatermark } from "./watermark";
 
-// This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-const openai = new OpenAI({
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
-});
+// Use OpenAI API directly
+if (!process.env.OPENAI_API_KEY) {
+  console.warn("OPENAI_API_KEY not set - image generation will fail. Please add your OpenAI API key to .env");
+  // Don't throw error, allow app to start for demo purposes
+}
+
+let openai: OpenAI | null = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 export interface GenerateImageOptions {
   prompt: string;
@@ -134,6 +140,10 @@ export async function generateImage(options: GenerateImageOptions, userId: strin
   );
   
   // Generate image using OpenAI
+  if (!openai) {
+    throw new Error("OpenAI API key not configured. Please add OPENAI_API_KEY to your .env file.");
+  }
+
   const response = await openai.images.generate({
     model: "gpt-image-1",
     prompt: enhancedPrompt,
@@ -158,10 +168,9 @@ export async function generateImage(options: GenerateImageOptions, userId: strin
     base64Image = addWatermark(base64Image);
   }
   
-  // Save to object storage
-  const objectStorageService = new ObjectStorageService();
+  // Save to local storage for now (can be upgraded to cloud storage later)
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
-  const imageUrl = await objectStorageService.saveImageToStorage(
+  const imageUrl = await localStorageService.saveImageToStorage(
     base64Image,
     fileName,
     true // Always public for now

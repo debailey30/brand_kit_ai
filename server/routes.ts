@@ -15,12 +15,16 @@ import {
 import Stripe from "stripe";
 import { generateImage } from "./imageGeneration";
 import { addWatermark } from "./watermark";
-import { ObjectStorageService } from "./objectStorage";
 import { randomUUID } from "crypto";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-09-30.clover",
-});
+let stripe: Stripe | null = null;
+if (process.env.STRIPE_SECRET_KEY) {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: "2025-09-30.clover",
+  });
+} else {
+  console.warn("STRIPE_SECRET_KEY not set - payment features will be disabled");
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -84,6 +88,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const subscription = await storage.getSubscription(userId);
       
       // Create or get Stripe customer
+      if (!stripe) {
+        return res.status(500).json({ message: "Payment system not configured" });
+      }
+
       let customerId = subscription?.stripeCustomerId;
       if (!customerId) {
         const customer = await stripe.customers.create({
@@ -98,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? process.env.STRIPE_PRICE_ID_PRO 
         : process.env.STRIPE_PRICE_ID_ENTERPRISE;
       
-      const session = await stripe.checkout.sessions.create({
+      const session = await stripe!.checkout.sessions.create({
         customer: customerId,
         mode: 'subscription',
         payment_method_types: ['card'],
@@ -132,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No active subscription" });
       }
       
-      const session = await stripe.billingPortal.sessions.create({
+      const session = await stripe!.billingPortal.sessions.create({
         customer: subscription.stripeCustomerId,
         return_url: `${req.protocol}://${req.hostname}/dashboard`,
       });
@@ -154,6 +162,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     let event;
     
     try {
+      if (!stripe) {
+        return res.status(500).json({ message: "Payment system not configured" });
+      }
+
       event = stripe.webhooks.constructEvent(
         req.body,
         sig,
@@ -199,7 +211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             await storage.updateSubscription(userId, {
               status,
-              currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+              currentPeriodEnd: subscription.current_period_end * 1000,
               cancelAtPeriodEnd: subscription.cancel_at_period_end,
             });
           }
@@ -424,16 +436,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const generation = await storage.createGeneration({
           userId,
           brandKitId: brandKitId || null,
-          templateId: templateId || null,
-          variantId: variantId || null,
-          customizations: customizations || null,
           prompt,
           imageUrl,
           aspectRatio,
           style,
           quality,
-          hasWatermark: subscription.tier === "free",
-          isFavorite: false,
+          hasWatermark: subscription.tier === "free" ? 1 : 0,
+          isFavorite: 0,
         });
         
         res.json(generation);
@@ -645,11 +654,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Calculate fees (20% platform, 80% creator)
-      const price = parseFloat(template.price);
+      const price = template.price; // Already a number in SQLite
       const platformFee = price * 0.2;
       const creatorEarnings = price * 0.8;
       
       // Create Stripe payment intent
+      if (!stripe) {
+        return res.status(500).json({ message: "Payment system not configured" });
+      }
+
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(price * 100), // Convert to cents
         currency: 'usd',
@@ -678,6 +691,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify payment with Stripe
+      if (!stripe) {
+        return res.status(500).json({ message: "Payment system not configured" });
+      }
+
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
       
       if (paymentIntent.status !== 'succeeded') {
@@ -685,7 +702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Calculate fees
-      const price = parseFloat(template.price);
+      const price = template.price; // Already a number in SQLite
       const platformFee = price * 0.2;
       const creatorEarnings = price * 0.8;
       
@@ -693,9 +710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const purchase = await storage.createTemplatePurchase({
         userId,
         templateId: template.id,
-        purchasePrice: price.toString(),
-        creatorEarnings: creatorEarnings.toString(),
-        platformFee: platformFee.toString(),
+        price: price,
         stripePaymentIntentId: paymentIntentId,
       });
       
