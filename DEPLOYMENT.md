@@ -62,6 +62,8 @@ Server runs on http://localhost:5000
    docker-compose down
    ```
 
+**Note**: The Docker build requires network access to download dependencies. If you encounter npm errors during the build, ensure your Docker environment has proper network connectivity.
+
 ### Using Docker only
 
 1. Build the image:

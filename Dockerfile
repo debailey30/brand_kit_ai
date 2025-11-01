@@ -1,22 +1,14 @@
-# Use Node.js LTS version
-FROM node:20-alpine AS base
+# Use Node.js LTS version (using standard image instead of alpine to avoid npm issues)
+FROM node:20 AS builder
 
-# Install dependencies only when needed
-FROM base AS deps
+# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies
+# Install all dependencies (including devDependencies for build)
 RUN npm ci
-
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source files
 COPY . .
@@ -25,14 +17,14 @@ COPY . .
 RUN npm run build
 
 # Production image, copy all the files and run the app
-FROM base AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 
 # Create a non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nodejs
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 -g nodejs nodejs
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
@@ -57,3 +49,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
 
 # Start the application
 CMD ["npm", "start"]
+
