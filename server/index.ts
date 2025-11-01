@@ -23,6 +23,11 @@ app.use(express.urlencoded({ extended: false }));
 // Serve static files from .storage directory
 app.use('/storage', express.static(path.join(process.cwd(), '.storage')));
 
+// Health check endpoint (before logging middleware)
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -78,9 +83,10 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
+  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
   server.listen({
     port,
-    host: "127.0.0.1",
+    host,
   }, () => {
     log(`serving on port ${port}`);
   });
