@@ -27,25 +27,8 @@ primary_region = "iad"
     method = "GET"
     path = "/health"
 
-[[services]]
-  protocol = "tcp"
-  internal_port = 5000
-
-  [[services.ports]]
-    port = 80
-    handlers = ["http"]
-    force_https = true
-
-  [[services.ports]]
-    port = 443
-    handlers = ["tls", "http"]
-
-  [services.concurrency]
-    type = "connections"
-    hard_limit = 25
-    soft_limit = 20
-
 [[vm]]
   cpu_kind = "shared"
   cpus = 1
   memory_mb = 256
+
