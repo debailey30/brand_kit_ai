@@ -10,10 +10,10 @@ primary_region = "iad"
 
 [env]
   NODE_ENV = "production"
-  PORT = "8080"
+  PORT = "5000"
 
 [http_service]
-  internal_port = 8080
+  internal_port = 5000
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true
@@ -29,7 +29,7 @@ primary_region = "iad"
 
 [[services]]
   protocol = "tcp"
-  internal_port = 8080
+  internal_port = 5000
 
   [[services.ports]]
     port = 80
