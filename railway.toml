@@ -1,0 +1,14 @@
+# Railway deployment configuration
+# https://docs.railway.app/deploy/deployments
+
+# Build configuration
+[build]
+builder = "NIXPACKS"
+
+# Deployment configuration
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

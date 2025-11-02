@@ -1,0 +1,25 @@
+# Docker ignore file
+node_modules
+npm-debug.log
+.env
+.env.local
+.env.*.local
+dist
+.git
+.gitignore
+README.md
+.vscode
+.idea
+*.log
+.DS_Store
+database.db
+database.db-shm
+database.db-wal
+*.db
+*.sqlite
+*.sqlite3
+.storage
+uploads
+generated_images
+coverage
+.nyc_output
