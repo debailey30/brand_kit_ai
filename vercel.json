@@ -1,27 +1,28 @@
 {
   "version": 2,
-  "functions": {
-    "dist/index.js": {
-      "runtime": "@vercel/node@3"
+  "builds": [
+    {
+      "src": "dist/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "dist/public/**",
+      "use": "@vercel/static"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/dist/index.js"
+      "dest": "dist/index.js"
     },
     {
       "src": "/storage/(.*)",
-      "dest": "/dist/index.js"
-    },
-    {
-      "src": "/(.*\\.(js|css|html|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot))",
-      "dest": "/dist/public/$1"
+      "dest": "dist/index.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/index.js"
+      "dest": "dist/public/$1"
     }
   ],
-  "buildCommand": "npm run build"
+  "outputDirectory": "dist/public"
 }
