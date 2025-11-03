@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: brand-kit-ai
+    env: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm run render-start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    # Auto-deploy from GitHub
+    autoDeploy: true
+    # Environment variables (set these in Render dashboard)
+    # - DATABASE_URL
+    # - SESSION_SECRET  
+    # - OPENAI_API_KEY
+    # - STRIPE_SECRET_KEY
+    # - STRIPE_PUBLISHABLE_KEY
