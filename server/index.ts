@@ -5,8 +5,8 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Location of your Vite build output (usually 'dist')
-const frontendDir = path.join(__dirname, '..', 'dist');
+// Location of your Vite build output (dist/public)
+const frontendDir = path.join(__dirname, '..', 'dist', 'public');
 
 const app = express();
 
@@ -18,9 +18,10 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(frontendDir, "index.html"));
 });
 
-// Place your existing API routes above the wildcard route if needed.
+// Place your existing API routes ABOVE the wildcard route if you have any.
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
+});
 });
