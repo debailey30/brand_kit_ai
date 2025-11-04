@@ -1,14 +1,12 @@
 services:
   - type: web
+    runtime: node
     name: brand-kit-ai
-    env: node
     plan: starter
     buildCommand: npm ci && npm run build
     startCommand: node dist/server/index.js
     healthCheckPath: /
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: PORT
         value: 10000
     # Auto-deploy from GitHub
