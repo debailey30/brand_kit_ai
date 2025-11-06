@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Location of your Vite build output (dist/public)
-const frontendDir = path.join(__dirname, '..', 'dist', 'public');
+const frontendDir = path.join(__dirname, '..', 'public');
 
 const app = express();
 
@@ -23,5 +23,4 @@ app.get("*", (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
-});
 });
