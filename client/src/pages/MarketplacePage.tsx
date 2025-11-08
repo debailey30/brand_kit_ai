@@ -356,6 +356,6 @@ export default function MarketplacePage() {
           onPurchase={handlePurchase}
         />
       </div>
-    </div>
+    </main>
   );
 }

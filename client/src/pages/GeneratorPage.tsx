@@ -89,7 +89,7 @@ export default function GeneratorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-6">
           <Button variant="ghost" onClick={handleBack} data-testid="button-back">
@@ -125,6 +125,6 @@ export default function GeneratorPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

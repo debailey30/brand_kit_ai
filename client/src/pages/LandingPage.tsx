@@ -137,7 +137,8 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <HeroSection />
+      <main>
+        <HeroSection />
 
       <section id="features" className="py-20 bg-muted/30">
         <div className="max-w-7xl mx-auto px-6">

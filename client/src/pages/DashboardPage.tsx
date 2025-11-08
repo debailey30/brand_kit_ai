@@ -99,7 +99,7 @@ export default function DashboardPage() {
         </div>
       </header>
       
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -230,7 +230,7 @@ export default function DashboardPage() {
             )}
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
     </div>
   );
 }
