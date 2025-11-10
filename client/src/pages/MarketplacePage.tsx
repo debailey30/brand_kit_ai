@@ -150,7 +150,7 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Template Marketplace</h1>
           <p className="text-muted-foreground">
@@ -355,7 +355,7 @@ export default function MarketplacePage() {
           onClose={() => setDetailModalTemplateId(null)}
           onPurchase={handlePurchase}
         />
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
