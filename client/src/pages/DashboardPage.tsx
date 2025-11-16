@@ -217,9 +217,12 @@ export default function DashboardPage() {
                   <GenerationHistoryCard
                     key={generation.id}
                     generation={{
-                      ...generation,
+                      id: generation.id,
                       thumbnail: generation.imageUrl,
+                      prompt: generation.prompt,
+                      aspectRatio: generation.aspectRatio,
                       createdAt: new Date(generation.createdAt || Date.now()).toLocaleDateString(),
+                      isFavorite: generation.isFavorite === 1,
                     }}
                     onDownload={(id) => console.log(`Download: ${id}`)}
                     onToggleFavorite={(id) => console.log(`Toggle favorite: ${id}`)}
