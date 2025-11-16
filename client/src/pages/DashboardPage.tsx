@@ -220,6 +220,7 @@ export default function DashboardPage() {
                       ...generation,
                       thumbnail: generation.imageUrl,
                       createdAt: new Date(generation.createdAt || Date.now()).toLocaleDateString(),
+                      isFavorite: generation.isFavorite ? true : false,
                     }}
                     onDownload={(id) => console.log(`Download: ${id}`)}
                     onToggleFavorite={(id) => console.log(`Toggle favorite: ${id}`)}

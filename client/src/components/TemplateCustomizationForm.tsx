@@ -46,48 +46,48 @@ function buildFormSchema(controls: TemplateControl[]) {
       case "text":
         fieldSchema = z.string().min(1, "Text is required");
         break;
-      case "number":
-        // Build base number schema with constraints
-        let baseNumberSchema = z.coerce.number();
-        if (control.minValue !== null) {
-          baseNumberSchema = baseNumberSchema.min(control.minValue);
-        }
-        if (control.maxValue !== null) {
-          baseNumberSchema = baseNumberSchema.max(control.maxValue);
-        }
-        
-        // Wrap with preprocessing to handle empty values
-        fieldSchema = z.preprocess(
-          (val) => {
-            // Convert empty strings to undefined for proper validation
-            if (val === "" || val === null || val === undefined) {
-              return undefined;
-            }
-            return val;
-          },
-          control.required ? baseNumberSchema : baseNumberSchema.optional()
-        );
-        break;
-      case "select":
-        if (control.options && typeof control.options === 'object' && 'values' in control.options) {
-          const options = (control.options as { values: string[] }).values;
-          fieldSchema = z.enum(options as [string, ...string[]]);
-        } else {
-          fieldSchema = z.string();
-        }
-        break;
-      case "toggle":
-        fieldSchema = z.boolean();
-        break;
+      // case "number": - Type not supported in schema
+      // // Build base number schema with constraints
+      // let baseNumberSchema = z.coerce.number();
+      // if (control.minValue !== null) {
+      // baseNumberSchema = baseNumberSchema.min(control.minValue);
+      // }
+      // if (control.maxValue !== null) {
+      // baseNumberSchema = baseNumberSchema.max(control.maxValue);
+      // }
+      // 
+      // // Wrap with preprocessing to handle empty values
+      // fieldSchema = z.preprocess(
+      // (val) => {
+      // // Convert empty strings to undefined for proper validation
+      // if (val === "" || val === null || val === undefined) {
+      // return undefined;
+      // }
+      // return val;
+      // },
+      // control.required ? baseNumberSchema : baseNumberSchema.optional()
+      // );
+      // break;
+      // case "select": - Type not supported in schema
+      // if (control.options && typeof control.options === 'object' && 'values' in control.options) {
+      // const options = (control.options as { values: string[] }).values;
+      // fieldSchema = z.enum(options as [string, ...string[]]);
+      // } else {
+      // fieldSchema = z.string();
+      // }
+      // break;
+      // case "toggle": - Type not supported in schema
+      // fieldSchema = z.boolean();
+      // break;
       default:
         fieldSchema = z.string();
     }
     
-    if (!control.required && control.controlType !== "toggle") {
+    if (!control.required) {
       fieldSchema = fieldSchema.optional();
     }
     
-    shape[control.key] = fieldSchema;
+    shape[control.id] = fieldSchema;
   });
   
   return z.object(shape);
@@ -104,18 +104,10 @@ export function TemplateCustomizationForm({
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: controls.reduce((acc, control) => {
-      if (defaultValues[control.key] !== undefined) {
-        acc[control.key] = defaultValues[control.key];
+      if (defaultValues[control.id] !== undefined) {
+        acc[control.id] = defaultValues[control.id];
       } else if (control.defaultValue !== null && control.defaultValue !== undefined) {
-        if (control.controlType === "toggle") {
-          acc[control.key] = control.defaultValue === "true";
-        } else if (control.controlType === "number") {
-          acc[control.key] = parseFloat(control.defaultValue);
-        } else {
-          acc[control.key] = control.defaultValue;
-        }
-      } else if (control.controlType === "toggle") {
-        acc[control.key] = false;
+        acc[control.id] = control.defaultValue;
       }
       return acc;
     }, {} as Record<string, any>),
@@ -132,7 +124,7 @@ export function TemplateCustomizationForm({
           <FormField
             key={control.id}
             control={form.control}
-            name={control.key}
+            name={control.id}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
@@ -146,7 +138,7 @@ export function TemplateCustomizationForm({
                       value={field.value || "#000000"}
                       onChange={(e) => field.onChange(e.target.value)}
                       className="w-16 h-10 p-1 rounded-md"
-                      data-testid={`input-${control.key}`}
+                      data-testid={`input-${control.id}`}
                     />
                     <Input
                       type="text"
@@ -154,7 +146,7 @@ export function TemplateCustomizationForm({
                       onChange={(e) => field.onChange(e.target.value)}
                       placeholder="#000000"
                       className="flex-1"
-                      data-testid={`input-${control.key}-hex`}
+                      data-testid={`input-${control.id}-hex`}
                     />
                   </div>
                 </FormControl>
@@ -169,7 +161,7 @@ export function TemplateCustomizationForm({
           <FormField
             key={control.id}
             control={form.control}
-            name={control.key}
+            name={control.id}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
@@ -179,7 +171,7 @@ export function TemplateCustomizationForm({
                 <FormControl>
                   {control.options && typeof control.options === 'object' && 'values' in control.options ? (
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger data-testid={`select-${control.key}`}>
+                      <SelectTrigger data-testid={`select-${control.id}`}>
                         <SelectValue placeholder="Select a font" />
                       </SelectTrigger>
                       <SelectContent>
@@ -194,7 +186,7 @@ export function TemplateCustomizationForm({
                     <Input
                       {...field}
                       placeholder="e.g., Inter, Arial, Helvetica"
-                      data-testid={`input-${control.key}`}
+                      data-testid={`input-${control.id}`}
                     />
                   )}
                 </FormControl>
@@ -209,7 +201,7 @@ export function TemplateCustomizationForm({
           <FormField
             key={control.id}
             control={form.control}
-            name={control.key}
+            name={control.id}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
@@ -220,7 +212,7 @@ export function TemplateCustomizationForm({
                   <Input
                     {...field}
                     placeholder={control.defaultValue || "Enter text"}
-                    data-testid={`input-${control.key}`}
+                    data-testid={`input-${control.id}`}
                   />
                 </FormControl>
                 <FormMessage />
@@ -229,103 +221,103 @@ export function TemplateCustomizationForm({
           />
         );
 
-      case "number":
-        return (
-          <FormField
-            key={control.id}
-            control={form.control}
-            name={control.key}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {control.label}
-                  {control.required && <span className="text-destructive ml-1">*</span>}
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    min={control.minValue ?? undefined}
-                    max={control.maxValue ?? undefined}
-                    placeholder={control.defaultValue || "0"}
-                    data-testid={`input-${control.key}`}
-                  />
-                </FormControl>
-                {(control.minValue !== null || control.maxValue !== null) && (
-                  <FormDescription>
-                    Range: {control.minValue ?? "∞"} - {control.maxValue ?? "∞"}
-                  </FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      case "select":
-        return (
-          <FormField
-            key={control.id}
-            control={form.control}
-            name={control.key}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {control.label}
-                  {control.required && <span className="text-destructive ml-1">*</span>}
-                </FormLabel>
-                <FormControl>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <SelectTrigger data-testid={`select-${control.key}`}>
-                      <SelectValue placeholder="Select an option" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {control.options && typeof control.options === 'object' && 'values' in control.options
-                        ? ((control.options as { values: string[] }).values || []).map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))
-                        : null}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-
-      case "toggle":
-        return (
-          <FormField
-            key={control.id}
-            control={form.control}
-            name={control.key}
-            render={({ field }) => (
-              <FormItem className="flex items-center justify-between rounded-md border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">
-                    {control.label}
-                  </FormLabel>
-                  {control.defaultValue && (
-                    <FormDescription>
-                      Default: {control.defaultValue}
-                    </FormDescription>
-                  )}
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    data-testid={`switch-${control.key}`}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        );
-
+      // case "number": - Type not supported in schema
+      // return (
+      // <FormField
+      // key={control.id}
+      // control={form.control}
+      // name={control.id}
+      // render={({ field }) => (
+      // <FormItem>
+      // <FormLabel>
+      // {control.label}
+      // {control.required && <span className="text-destructive ml-1">*</span>}
+      // </FormLabel>
+      // <FormControl>
+      // <Input
+      // type="number"
+      // {...field}
+      // min={control.minValue ?? undefined}
+      // max={control.maxValue ?? undefined}
+      // placeholder={control.defaultValue || "0"}
+      // data-testid={`input-${control.id}`}
+      // />
+      // </FormControl>
+      // {(control.minValue !== null || control.maxValue !== null) && (
+      // <FormDescription>
+      // Range: {control.minValue ?? "∞"} - {control.maxValue ?? "∞"}
+      // </FormDescription>
+      // )}
+      // <FormMessage />
+      // </FormItem>
+      // )}
+      // />
+      // );
+      // 
+      // case "select": - Type not supported in schema
+      // return (
+      // <FormField
+      // key={control.id}
+      // control={form.control}
+      // name={control.id}
+      // render={({ field }) => (
+      // <FormItem>
+      // <FormLabel>
+      // {control.label}
+      // {control.required && <span className="text-destructive ml-1">*</span>}
+      // </FormLabel>
+      // <FormControl>
+      // <Select onValueChange={field.onChange} defaultValue={field.value}>
+      // <SelectTrigger data-testid={`select-${control.id}`}>
+      // <SelectValue placeholder="Select an option" />
+      // </SelectTrigger>
+      // <SelectContent>
+      // {control.options && typeof control.options === 'object' && 'values' in control.options
+      // ? ((control.options as { values: string[] }).values || []).map((option) => (
+      // <SelectItem key={option} value={option}>
+      // {option}
+      // </SelectItem>
+      // ))
+      // : null}
+      // </SelectContent>
+      // </Select>
+      // </FormControl>
+      // <FormMessage />
+      // </FormItem>
+      // )}
+      // />
+      // );
+      // 
+      // case "toggle": - Type not supported in schema
+      // return (
+      // <FormField
+      // key={control.id}
+      // control={form.control}
+      // name={control.id}
+      // render={({ field }) => (
+      // <FormItem className="flex items-center justify-between rounded-md border p-4">
+      // <div className="space-y-0.5">
+      // <FormLabel className="text-base">
+      // {control.label}
+      // </FormLabel>
+      // {control.defaultValue && (
+      // <FormDescription>
+      // Default: {control.defaultValue}
+      // </FormDescription>
+      // )}
+      // </div>
+      // <FormControl>
+      // <Switch
+      // checked={field.value}
+      // onCheckedChange={field.onChange}
+      // data-testid={`switch-${control.id}`}
+      // />
+      // </FormControl>
+      // </FormItem>
+      // )}
+      // />
+      // );
+      // 
       default:
         return null;
     }
@@ -336,7 +328,7 @@ export function TemplateCustomizationForm({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <div className="space-y-4">
           {controls
-            .sort((a, b) => a.sortOrder - b.sortOrder)
+            .sort((a, b) => a.orderIndex - b.orderIndex)
             .map((control) => renderControlInput(control))}
         </div>
         
