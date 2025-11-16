@@ -27,6 +27,17 @@ export function TemplateDetailModal({
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [customizations, setCustomizations] = useState<Record<string, any>>({});
 
+  // Helper functions to parse JSON strings
+  const parseJsonField = (field: string | null | undefined): any[] => {
+    if (!field) return [];
+    try {
+      const parsed = JSON.parse(field);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
   // Fetch template details
   const { data: template, isLoading: templateLoading } = useQuery<Template>({
     queryKey: [`/api/templates/${templateId}`],
@@ -70,7 +81,7 @@ export function TemplateDetailModal({
     });
   };
 
-  const price = template ? parseFloat(template.price) : 0;
+  const price = template ? template.price : 0;
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
@@ -86,7 +97,7 @@ export function TemplateDetailModal({
               <div className="aspect-[3/4] relative overflow-hidden rounded-md bg-background mb-4">
                 <img
                   src={selectedVariant?.previewUrl ?? template.previewUrl}
-                  alt={selectedVariant?.name || template.name}
+                  alt={selectedVariant?.formatName || template.name}
                   className="w-full h-full object-cover"
                   data-testid="img-template-preview"
                 />
@@ -116,7 +127,7 @@ export function TemplateDetailModal({
                         >
                           <img
                             src={variant.previewUrl ?? template.previewUrl}
-                            alt={variant.name}
+                            alt={variant.formatName}
                             className="w-full h-full object-cover"
                           />
                         </button>
@@ -133,7 +144,7 @@ export function TemplateDetailModal({
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                     <DialogTitle className="text-2xl mb-1" data-testid="text-template-name">
-                      {selectedVariant?.name || template.name}
+                      {selectedVariant?.formatName || template.name}
                     </DialogTitle>
                     <DialogDescription className="text-base">
                       {template.description}
@@ -143,36 +154,39 @@ export function TemplateDetailModal({
 
                 <div className="flex items-center gap-4 flex-wrap">
                   <Badge variant="secondary">{template.category}</Badge>
-                  {template.industries && template.industries.length > 0 && (
-                    <div className="flex gap-1">
-                      {template.industries.slice(0, 2).map((industry) => (
-                        <Badge key={industry} variant="outline" className="text-xs">
-                          {industry}
-                        </Badge>
-                      ))}
-                      {template.industries.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{template.industries.length - 2}
-                        </Badge>
-                      )}
-                    </div>
-                  )}
+                  {(() => {
+                    const industries = parseJsonField(template.industries);
+                    return industries.length > 0 && (
+                      <div className="flex gap-1">
+                        {industries.slice(0, 2).map((industry: string) => (
+                          <Badge key={industry} variant="outline" className="text-xs">
+                            {industry}
+                          </Badge>
+                        ))}
+                        {industries.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{industries.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="flex items-center gap-2 mt-2">
-                  {template.rating && parseFloat(template.rating) > 0 && (
+                  {template.rating && template.rating > 0 && (
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium">{parseFloat(template.rating).toFixed(1)}</span>
+                      <span className="text-sm font-medium">{template.rating.toFixed(1)}</span>
                       <span className="text-xs text-muted-foreground">
-                        ({template.reviewCount} reviews)
+                        ({template.ratingCount} reviews)
                       </span>
                     </div>
                   )}
                   <Separator orientation="vertical" className="h-4" />
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Download className="h-4 w-4" />
-                    {template.salesCount} sales
+                    {template.downloadCount} downloads
                   </div>
                 </div>
               </DialogHeader>
@@ -200,14 +214,13 @@ export function TemplateDetailModal({
                     <div>
                       <h4 className="font-medium mb-2">Selected Variant</h4>
                       <p className="text-sm text-muted-foreground">
-                        {selectedVariant.recommendedUsage || `${selectedVariant.name} variant`}
+                        {selectedVariant.formatName} variant
                       </p>
                       <div className="mt-2 flex gap-2 text-sm">
                         <Badge variant="outline">{selectedVariant.formatSlug}</Badge>
                         <Badge variant="outline">
                           {selectedVariant.width} x {selectedVariant.height}px
                         </Badge>
-                        <Badge variant="outline">{selectedVariant.orientation}</Badge>
                       </div>
                     </div>
                   )}
@@ -219,18 +232,21 @@ export function TemplateDetailModal({
                     </p>
                   </div>
 
-                  {template.styleTags && template.styleTags.length > 0 && (
-                    <div>
-                      <h4 className="font-medium mb-2">Style Tags</h4>
-                      <div className="flex gap-1 flex-wrap">
-                        {template.styleTags.map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
+                  {(() => {
+                    const styleTags = parseJsonField(template.styleTags);
+                    return styleTags.length > 0 && (
+                      <div>
+                        <h4 className="font-medium mb-2">Style Tags</h4>
+                        <div className="flex gap-1 flex-wrap">
+                          {styleTags.map((tag: string) => (
+                            <Badge key={tag} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   <div>
                     <h4 className="font-medium mb-2">Creator</h4>
@@ -279,9 +295,7 @@ export function TemplateDetailModal({
                     <div>
                       <span className="font-medium">File Formats:</span>{" "}
                       <span className="text-muted-foreground">
-                        {variants.length > 0
-                          ? Array.from(new Set(variants.flatMap(v => v.exportFormats || []))).join(", ") || selectedVariant?.formatSlug || "PNG"
-                          : "PNG, JPG"}
+                        {selectedVariant?.formatSlug || "PNG, JPG"}
                       </span>
                     </div>
                     <div>
@@ -310,7 +324,7 @@ export function TemplateDetailModal({
                   </div>
                   {selectedVariant && (
                     <div className="text-sm text-muted-foreground">
-                      {selectedVariant.name}
+                      {selectedVariant.formatName}
                     </div>
                   )}
                 </div>

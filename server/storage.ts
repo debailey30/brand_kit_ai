@@ -40,6 +40,7 @@ import { eq, and, desc, sql, arrayContains } from "drizzle-orm";
 export interface IStorage {
   // User operations (IMPORTANT: mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User[]>;
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Subscription operations
@@ -112,6 +113,10 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByEmail(email: string): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.email, email));
+  }
+
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
@@ -120,7 +125,7 @@ export class DatabaseStorage implements IStorage {
         target: users.id,
         set: {
           ...userData,
-          updatedAt: new Date(),
+          updatedAt: Date.now(),
         },
       })
       .returning();
@@ -160,7 +165,7 @@ export class DatabaseStorage implements IStorage {
   async updateSubscription(userId: string, updates: Partial<Subscription>): Promise<Subscription> {
     const [updated] = await db
       .update(subscriptions)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: Date.now() })
       .where(eq(subscriptions.userId, userId))
       .returning();
     return updated;
@@ -208,7 +213,7 @@ export class DatabaseStorage implements IStorage {
   async updateBrandKit(id: string, updates: Partial<BrandKit>): Promise<BrandKit> {
     const [updated] = await db
       .update(brandKits)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: Date.now() })
       .where(eq(brandKits.id, id))
       .returning();
     return updated;
@@ -270,7 +275,7 @@ export class DatabaseStorage implements IStorage {
     if (generation) {
       await db
         .update(generations)
-        .set({ isFavorite: !generation.isFavorite })
+        .set({ isFavorite: generation.isFavorite ? 0 : 1 })
         .where(eq(generations.id, id));
     }
   }
@@ -299,7 +304,7 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(templates.creatorId, filters.creatorId));
     }
     if (filters?.isActive !== undefined) {
-      conditions.push(eq(templates.isActive, filters.isActive));
+      conditions.push(eq(templates.isActive, filters.isActive ? 1 : 0));
     }
     // Filter by industries (array contains check)
     if (filters?.industries && filters.industries.length > 0) {
@@ -332,7 +337,7 @@ export class DatabaseStorage implements IStorage {
   async updateTemplate(id: string, updates: Partial<Template>): Promise<Template> {
     const [updated] = await db
       .update(templates)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: Date.now() })
       .where(eq(templates.id, id))
       .returning();
     return updated;
@@ -345,7 +350,7 @@ export class DatabaseStorage implements IStorage {
   async incrementTemplateSales(id: string): Promise<void> {
     await db
       .update(templates)
-      .set({ salesCount: sql`${templates.salesCount} + 1` })
+      .set({ downloadCount: sql`${templates.downloadCount} + 1` })
       .where(eq(templates.id, id));
   }
 
@@ -355,7 +360,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(templatePurchases)
       .where(eq(templatePurchases.userId, userId))
-      .orderBy(desc(templatePurchases.purchasedAt));
+      .orderBy(desc(templatePurchases.createdAt));
   }
 
   async createTemplatePurchase(purchase: InsertTemplatePurchase): Promise<TemplatePurchase> {
@@ -419,7 +424,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(templateControls)
       .where(eq(templateControls.templateId, templateId))
-      .orderBy(templateControls.sortOrder);
+      .orderBy(templateControls.orderIndex);
   }
 
   async createTemplateControl(control: InsertTemplateControl): Promise<TemplateControl> {
@@ -467,7 +472,7 @@ export class DatabaseStorage implements IStorage {
   async updateTemplateCustomization(id: string, updates: Partial<TemplateCustomization>): Promise<TemplateCustomization> {
     const [updated] = await db
       .update(templateCustomizations)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: Date.now() })
       .where(eq(templateCustomizations.id, id))
       .returning();
     return updated;
@@ -482,7 +487,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(templateBundles)
-      .where(eq(templateBundles.isActive, true))
+      .where(eq(templateBundles.isActive, 1))
       .orderBy(desc(templateBundles.createdAt));
   }
 
@@ -497,7 +502,7 @@ export class DatabaseStorage implements IStorage {
   async updateTemplateBundle(id: string, updates: Partial<TemplateBundle>): Promise<TemplateBundle> {
     const [updated] = await db
       .update(templateBundles)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: Date.now() })
       .where(eq(templateBundles.id, id))
       .returning();
     return updated;

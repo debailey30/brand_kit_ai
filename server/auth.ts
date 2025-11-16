@@ -114,6 +114,7 @@ export async function setupAuth(app: Express) {
 
       // Create user
       const user = await storage.upsertUser({
+        id: crypto.randomUUID(),
         email,
         password: hashedPassword,
         firstName: firstName || null,

@@ -6,9 +6,6 @@ import { storage } from "./storage";
 async function seedTemplates() {
   console.log("Starting template seeding...");
   
-  // Get first user (or create a default seller account)
-  const users = await storage.getTemplates({ isActive: true });
-  
   // For demo purposes, we'll use a hardcoded user ID
   // In production, you'd want actual seller accounts
   const sellerId = "demo-seller-001";
@@ -21,51 +18,49 @@ async function seedTemplates() {
       description: "Clean, minimalist logo perfect for tech startups and SaaS companies. Includes multiple color schemes and layout variations.",
       previewUrl: "https://placeholder.com/tech-logo-preview.png",
       fileUrl: "https://placeholder.com/tech-logo-template.ai",
-      price: "29.99",
+      thumbnail: "https://placeholder.com/tech-logo-thumb.png",
+      price: 29.99,
       category: "logo",
+      tags: JSON.stringify(["logo", "branding", "startup", "tech"]),
       useCase: "Brand identity for technology companies",
-      industries: ["technology", "software", "saas", "fintech"],
-      styleTags: ["modern", "minimalist", "clean", "professional"],
+      industries: JSON.stringify(["technology", "software", "saas", "fintech"]),
+      styleTags: JSON.stringify(["modern", "minimalist", "clean", "professional"]),
       aiPromptSeed: "modern minimalist tech company logo with geometric shapes, clean lines, professional",
-      defaultPalette: {
+      defaultPalette: JSON.stringify({
         primary: "#6366f1",
         secondary: "#8b5cf6",
         accent: "#ec4899",
         neutral: "#64748b"
-      },
-      fontStack: {
+      }),
+      fontStack: JSON.stringify({
         heading: "Inter",
         body: "Inter",
         accent: "Space Grotesk"
-      },
+      }),
       canvasWidth: 1000,
       canvasHeight: 1000,
-      isPremium: false,
-      isActive: true
+      isPremium: 0,
+      isActive: 1
     });
     
     // Add variants for tech logo
     await storage.createTemplateVariant({
       templateId: techLogo.id,
       formatSlug: "square",
-      name: "Square (Social Media)",
+      formatName: "Square (Social Media)",
       width: 1080,
       height: 1080,
-      orientation: "square",
-      exportFormats: ["png", "svg", "jpg"],
-      recommendedUsage: "Instagram, Facebook profile, app icons",
+      fileUrl: "https://placeholder.com/tech-logo-square-file.ai",
       previewUrl: "https://placeholder.com/tech-logo-square.png"
     });
     
     await storage.createTemplateVariant({
       templateId: techLogo.id,
       formatSlug: "horizontal",
-      name: "Horizontal (Website)",
+      formatName: "Horizontal (Website)",
       width: 1920,
       height: 600,
-      orientation: "landscape",
-      exportFormats: ["png", "svg"],
-      recommendedUsage: "Website headers, email signatures",
+      fileUrl: "https://placeholder.com/tech-logo-horizontal-file.ai",
       previewUrl: "https://placeholder.com/tech-logo-horizontal.png"
     });
     
@@ -73,33 +68,30 @@ async function seedTemplates() {
     await storage.createTemplateControl({
       templateId: techLogo.id,
       controlType: "color",
-      key: "primaryColor",
       label: "Primary Brand Color",
       defaultValue: "#6366f1",
-      required: true,
-      sortOrder: 1
+      required: 1,
+      orderIndex: 1
     });
     
     await storage.createTemplateControl({
       templateId: techLogo.id,
       controlType: "font",
-      key: "logoFont",
       label: "Logo Font",
       defaultValue: "Inter",
-      options: { fonts: ["Inter", "Poppins", "Space Grotesk", "Outfit", "Manrope"] },
-      required: true,
-      sortOrder: 2
+      options: JSON.stringify({ fonts: ["Inter", "Poppins", "Space Grotesk", "Outfit", "Manrope"] }),
+      required: 1,
+      orderIndex: 2
     });
     
     await storage.createTemplateControl({
       templateId: techLogo.id,
-      controlType: "select",
-      key: "style",
+      controlType: "text",
       label: "Logo Style",
       defaultValue: "minimal",
-      options: { choices: ["minimal", "bold", "gradient", "outlined"] },
-      required: true,
-      sortOrder: 3
+      options: JSON.stringify({ choices: ["minimal", "bold", "gradient", "outlined"] }),
+      required: 1,
+      orderIndex: 3
     });
     
     console.log("✓ Created Tech Logo template with variants and controls");
@@ -109,65 +101,55 @@ async function seedTemplates() {
       creatorId: sellerId,
       name: "Instagram Story & Post Pack",
       description: "Complete social media template pack with Instagram stories, posts, and carousel designs. Perfect for consistent brand presence.",
+      thumbnail: "https://placeholder.com/template-thumb.png",
       previewUrl: "https://placeholder.com/social-pack-preview.png",
       fileUrl: "https://placeholder.com/social-pack-template.psd",
-      price: "49.99",
+      price: 49.99,
+      tags: JSON.stringify(["template", "design"]),
       category: "social-media",
       useCase: "Social media content creation",
-      industries: ["marketing", "ecommerce", "lifestyle", "fashion"],
-      styleTags: ["trendy", "colorful", "engaging", "modern"],
+      industries: JSON.stringify(["marketing", "ecommerce", "lifestyle", "fashion"]),
+      styleTags: JSON.stringify(["trendy", "colorful", "engaging", "modern"]),
       aiPromptSeed: "vibrant social media post design with bold typography, modern layout, eye-catching",
-      defaultPalette: {
+      defaultPalette: JSON.stringify({
         primary: "#ec4899",
         secondary: "#f59e0b",
         accent: "#8b5cf6",
         neutral: "#f3f4f6"
-      },
-      fontStack: {
+      }),
+      fontStack: JSON.stringify({
         heading: "Poppins",
         body: "Inter",
         accent: "Bebas Neue"
-      },
+      }),
       canvasWidth: 1080,
       canvasHeight: 1920,
-      isPremium: true,
-      isActive: true
+      isPremium: 1,
+      isActive: 1
     });
     
     // Add variants
     await storage.createTemplateVariant({
       templateId: socialPack.id,
       formatSlug: "story",
-      name: "Instagram Story",
-      width: 1080,
-      height: 1920,
-      orientation: "portrait",
-      exportFormats: ["png", "jpg"],
-      recommendedUsage: "Instagram Stories, Facebook Stories",
+      formatName: "Story",      width: 1080,
+      height: 1920,      fileUrl: "https://placeholder.com/variant-file.ai",
       previewUrl: "https://placeholder.com/social-story.png"
     });
     
     await storage.createTemplateVariant({
       templateId: socialPack.id,
       formatSlug: "post",
-      name: "Instagram Post",
-      width: 1080,
-      height: 1080,
-      orientation: "square",
-      exportFormats: ["png", "jpg"],
-      recommendedUsage: "Instagram Feed, Facebook Feed",
+      formatName: "Post",      width: 1080,
+      height: 1080,      fileUrl: "https://placeholder.com/variant-file.ai",
       previewUrl: "https://placeholder.com/social-post.png"
     });
     
     await storage.createTemplateVariant({
       templateId: socialPack.id,
       formatSlug: "carousel",
-      name: "Carousel Slide",
-      width: 1080,
-      height: 1350,
-      orientation: "portrait",
-      exportFormats: ["png", "jpg"],
-      recommendedUsage: "Instagram Carousel Posts",
+      formatName: "Carousel",      width: 1080,
+      height: 1350,      fileUrl: "https://placeholder.com/variant-file.ai",
       previewUrl: "https://placeholder.com/social-carousel.png"
     });
     
@@ -175,31 +157,28 @@ async function seedTemplates() {
     await storage.createTemplateControl({
       templateId: socialPack.id,
       controlType: "color",
-      key: "accentColor",
       label: "Accent Color",
       defaultValue: "#ec4899",
-      required: true,
-      sortOrder: 1
+      required: 1,
+      orderIndex: 1
     });
     
     await storage.createTemplateControl({
       templateId: socialPack.id,
       controlType: "text",
-      key: "headline",
       label: "Headline Text",
       defaultValue: "Your Headline Here",
-      required: true,
-      sortOrder: 2
+      required: 1,
+      orderIndex: 2
     });
     
     await storage.createTemplateControl({
       templateId: socialPack.id,
-      controlType: "toggle",
-      key: "showLogo",
+      controlType: "text",
       label: "Show Logo",
       defaultValue: "true",
-      required: false,
-      sortOrder: 3
+      required: 0,
+      orderIndex: 3
     });
     
     console.log("✓ Created Social Media Pack template");
@@ -209,71 +188,66 @@ async function seedTemplates() {
       creatorId: sellerId,
       name: "Executive Business Card",
       description: "Professional business card design with front and back layouts. Includes QR code placement and minimalist styling.",
+      thumbnail: "https://placeholder.com/template-thumb.png",
       previewUrl: "https://placeholder.com/business-card-preview.png",
       fileUrl: "https://placeholder.com/business-card-template.ai",
-      price: "19.99",
+      price: 19.99,
+      tags: JSON.stringify(["template", "design"]),
       category: "business-card",
       useCase: "Professional networking and brand identity",
-      industries: ["corporate", "consulting", "finance", "real-estate"],
-      styleTags: ["professional", "minimal", "elegant", "corporate"],
+      industries: JSON.stringify(["corporate", "consulting", "finance", "real-estate"]),
+      styleTags: JSON.stringify(["professional", "minimal", "elegant", "corporate"]),
       aiPromptSeed: "elegant minimalist business card design, professional layout, clean typography",
-      defaultPalette: {
+      defaultPalette: JSON.stringify({
         primary: "#1e293b",
         secondary: "#64748b",
         accent: "#3b82f6",
         neutral: "#ffffff"
-      },
-      fontStack: {
+      }),
+      fontStack: JSON.stringify({
         heading: "Playfair Display",
         body: "Inter",
         accent: "Inter"
-      },
+      }),
       canvasWidth: 3.5 * 300,
       canvasHeight: 2 * 300,
-      isPremium: false,
-      isActive: true
+      isPremium: 0,
+      isActive: 1
     });
     
     await storage.createTemplateVariant({
       templateId: businessCard.id,
       formatSlug: "standard",
-      name: "Standard (3.5\" x 2\")",
-      width: 1050,
-      height: 600,
-      orientation: "landscape",
-      exportFormats: ["pdf", "png"],
-      recommendedUsage: "Standard US business card size",
+      formatName: "Standard",      width: 1050,
+      height: 600,      fileUrl: "https://placeholder.com/variant-file.ai",
       previewUrl: "https://placeholder.com/card-standard.png"
     });
     
     await storage.createTemplateControl({
       templateId: businessCard.id,
       controlType: "text",
-      key: "name",
       label: "Name",
       defaultValue: "John Doe",
-      required: true,
-      sortOrder: 1
+      required: 1,
+      orderIndex: 1
     });
     
     await storage.createTemplateControl({
       templateId: businessCard.id,
       controlType: "text",
-      key: "title",
       label: "Job Title",
       defaultValue: "CEO & Founder",
-      required: true,
-      sortOrder: 2
+      required: 1,
+      orderIndex: 2
     });
     
     await storage.createTemplateControl({
       templateId: businessCard.id,
       controlType: "color",
-      key: "brandColor",
       label: "Brand Color",
       defaultValue: "#3b82f6",
-      required: true,
-      sortOrder: 3
+      required: 1,
+      orderIndex: 3
     });
     
     console.log("✓ Created Business Card template");
@@ -283,85 +257,73 @@ async function seedTemplates() {
       creatorId: sellerId,
       name: "Digital Ad Banner Set",
       description: "Complete set of web ad banners in all standard sizes. Optimized for Google Ads and display advertising.",
+      thumbnail: "https://placeholder.com/template-thumb.png",
       previewUrl: "https://placeholder.com/ad-banner-preview.png",
       fileUrl: "https://placeholder.com/ad-banner-template.psd",
-      price: "39.99",
+      price: 39.99,
+      tags: JSON.stringify(["template", "design"]),
       category: "ad-banner",
       useCase: "Digital advertising campaigns",
-      industries: ["ecommerce", "saas", "retail", "marketing"],
-      styleTags: ["bold", "promotional", "attention-grabbing", "conversion-focused"],
+      industries: JSON.stringify(["ecommerce", "saas", "retail", "marketing"]),
+      styleTags: JSON.stringify(["bold", "promotional", "attention-grabbing", "conversion-focused"]),
       aiPromptSeed: "eye-catching digital ad banner design, bold call-to-action, professional marketing",
-      defaultPalette: {
+      defaultPalette: JSON.stringify({
         primary: "#ef4444",
         secondary: "#fbbf24",
         accent: "#10b981",
         neutral: "#ffffff"
-      },
-      fontStack: {
+      }),
+      fontStack: JSON.stringify({
         heading: "Montserrat",
         body: "Inter",
         accent: "Montserrat"
-      },
+      }),
       canvasWidth: 728,
       canvasHeight: 90,
-      isPremium: true,
-      isActive: true
+      isPremium: 1,
+      isActive: 1
     });
     
     await storage.createTemplateVariant({
       templateId: adBanner.id,
       formatSlug: "leaderboard",
-      name: "Leaderboard (728x90)",
-      width: 728,
-      height: 90,
-      orientation: "landscape",
-      exportFormats: ["png", "jpg", "gif"],
-      recommendedUsage: "Top of webpage, header ads",
+      formatName: "Leaderboard",      width: 728,
+      height: 90,      fileUrl: "https://placeholder.com/variant-file.ai",
       previewUrl: "https://placeholder.com/banner-leaderboard.png"
     });
     
     await storage.createTemplateVariant({
       templateId: adBanner.id,
       formatSlug: "medium-rectangle",
-      name: "Medium Rectangle (300x250)",
-      width: 300,
-      height: 250,
-      orientation: "landscape",
-      exportFormats: ["png", "jpg", "gif"],
-      recommendedUsage: "Sidebar ads, content ads",
+      formatName: "Medium Rectangle",      width: 300,
+      height: 250,      fileUrl: "https://placeholder.com/variant-file.ai",
       previewUrl: "https://placeholder.com/banner-rectangle.png"
     });
     
     await storage.createTemplateVariant({
       templateId: adBanner.id,
       formatSlug: "skyscraper",
-      name: "Wide Skyscraper (160x600)",
-      width: 160,
-      height: 600,
-      orientation: "portrait",
-      exportFormats: ["png", "jpg", "gif"],
-      recommendedUsage: "Sidebar, vertical ads",
+      formatName: "Skyscraper",      width: 160,
+      height: 600,      fileUrl: "https://placeholder.com/variant-file.ai",
       previewUrl: "https://placeholder.com/banner-skyscraper.png"
     });
     
     await storage.createTemplateControl({
       templateId: adBanner.id,
       controlType: "text",
-      key: "ctaText",
       label: "Call to Action",
       defaultValue: "Shop Now",
-      required: true,
-      sortOrder: 1
+      required: 1,
+      orderIndex: 1
     });
     
     await storage.createTemplateControl({
       templateId: adBanner.id,
       controlType: "color",
-      key: "ctaColor",
       label: "CTA Button Color",
       defaultValue: "#ef4444",
-      required: true,
-      sortOrder: 2
+      required: 1,
+      orderIndex: 2
     });
     
     console.log("✓ Created Ad Banner template");
@@ -371,62 +333,58 @@ async function seedTemplates() {
       creatorId: sellerId,
       name: "Pitch Deck Presentation",
       description: "Professional pitch deck template with 15+ slide layouts. Perfect for startups and business presentations.",
+      thumbnail: "https://placeholder.com/template-thumb.png",
       previewUrl: "https://placeholder.com/presentation-preview.png",
       fileUrl: "https://placeholder.com/presentation-template.pptx",
-      price: "59.99",
+      price: 59.99,
+      tags: JSON.stringify(["template", "design"]),
       category: "presentation",
       useCase: "Business presentations and pitch decks",
-      industries: ["startup", "business", "consulting", "technology"],
-      styleTags: ["professional", "modern", "corporate", "clean"],
+      industries: JSON.stringify(["startup", "business", "consulting", "technology"]),
+      styleTags: JSON.stringify(["professional", "modern", "corporate", "clean"]),
       aiPromptSeed: "professional presentation slide design, modern corporate aesthetic, clean data visualization",
-      defaultPalette: {
+      defaultPalette: JSON.stringify({
         primary: "#2563eb",
         secondary: "#7c3aed",
         accent: "#f59e0b",
         neutral: "#f8fafc"
-      },
-      fontStack: {
+      }),
+      fontStack: JSON.stringify({
         heading: "Outfit",
         body: "Inter",
         accent: "Outfit"
-      },
+      }),
       canvasWidth: 1920,
       canvasHeight: 1080,
-      isPremium: true,
-      isActive: true
+      isPremium: 1,
+      isActive: 1
     });
     
     await storage.createTemplateVariant({
       templateId: presentation.id,
       formatSlug: "widescreen",
-      name: "Widescreen 16:9",
-      width: 1920,
-      height: 1080,
-      orientation: "landscape",
-      exportFormats: ["pptx", "pdf", "png"],
-      recommendedUsage: "Modern displays, online presentations",
+      formatName: "Widescreen",      width: 1920,
+      height: 1080,      fileUrl: "https://placeholder.com/variant-file.ai",
       previewUrl: "https://placeholder.com/presentation-16-9.png"
     });
     
     await storage.createTemplateControl({
       templateId: presentation.id,
       controlType: "color",
-      key: "themeColor",
       label: "Theme Color",
       defaultValue: "#2563eb",
-      required: true,
-      sortOrder: 1
+      required: 1,
+      orderIndex: 1
     });
     
     await storage.createTemplateControl({
       templateId: presentation.id,
       controlType: "font",
-      key: "headingFont",
       label: "Heading Font",
       defaultValue: "Outfit",
-      options: { fonts: ["Outfit", "Montserrat", "Raleway", "Playfair Display"] },
-      required: true,
-      sortOrder: 2
+      options: JSON.stringify({ fonts: ["Outfit", "Montserrat", "Raleway", "Playfair Display"] }),
+      required: 1,
+      orderIndex: 2
     });
     
     console.log("✓ Created Presentation template");
@@ -436,12 +394,11 @@ async function seedTemplates() {
       creatorId: sellerId,
       name: "Startup Brand Essentials",
       description: "Complete branding package for startups: logo, business cards, social media templates, and pitch deck. Save 30% vs individual purchase!",
-      previewUrl: "https://placeholder.com/starter-bundle-preview.png",
-      price: "129.99",
-      discount: "30.00",
-      templateIds: [techLogo.id, businessCard.id, socialPack.id, presentation.id],
-      isPremium: true,
-      isActive: true
+      thumbnail: "https://placeholder.com/starter-bundle-preview.png",
+      price: 129.99,
+      originalPrice: 185.00,
+      discountPercentage: 30,
+      isActive: 1
     });
     
     console.log("✓ Created Startup Bundle");
