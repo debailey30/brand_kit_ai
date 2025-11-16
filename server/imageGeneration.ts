@@ -66,8 +66,11 @@ async function buildTemplateEnhancedPrompt(
       }
       
       // Add style tags
-      if (template.styleTags && template.styleTags.length > 0) {
-        enhancedPrompt += `. Style attributes: ${template.styleTags.join(", ")}`;
+      if (template.styleTags) {
+        const styleTags = JSON.parse(template.styleTags);
+        if (styleTags && styleTags.length > 0) {
+          enhancedPrompt += `. Style attributes: ${styleTags.join(", ")}`;
+        }
       }
     }
     
@@ -75,10 +78,7 @@ async function buildTemplateEnhancedPrompt(
     if (variantId) {
       const variant = await storage.getTemplateVariant(variantId);
       if (variant) {
-        enhancedPrompt += `. Format: ${variant.formatSlug}, ${variant.orientation} orientation`;
-        if (variant.recommendedUsage) {
-          enhancedPrompt += `, optimized for ${variant.recommendedUsage}`;
-        }
+        enhancedPrompt += `. Format: ${variant.formatSlug}`;
       }
     }
     
