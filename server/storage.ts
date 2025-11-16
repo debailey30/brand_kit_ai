@@ -40,6 +40,7 @@ import { eq, and, desc, sql, arrayContains } from "drizzle-orm";
 export interface IStorage {
   // User operations (IMPORTANT: mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Subscription operations
@@ -109,6 +110,11 @@ export class DatabaseStorage implements IStorage {
   // User operations (IMPORTANT: mandatory for Replit Auth)
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
 
@@ -299,7 +305,7 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(templates.creatorId, filters.creatorId));
     }
     if (filters?.isActive !== undefined) {
-      conditions.push(eq(templates.isActive, filters.isActive));
+      conditions.push(eq(templates.isActive, filters.isActive ? 1 : 0));
     }
     // Filter by industries (array contains check)
     if (filters?.industries && filters.industries.length > 0) {
@@ -345,7 +351,7 @@ export class DatabaseStorage implements IStorage {
   async incrementTemplateSales(id: string): Promise<void> {
     await db
       .update(templates)
-      .set({ salesCount: sql`${templates.salesCount} + 1` })
+      .set({ downloadCount: sql`${templates.downloadCount} + 1` })
       .where(eq(templates.id, id));
   }
 
@@ -355,7 +361,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(templatePurchases)
       .where(eq(templatePurchases.userId, userId))
-      .orderBy(desc(templatePurchases.purchasedAt));
+      .orderBy(desc(templatePurchases.createdAt));
   }
 
   async createTemplatePurchase(purchase: InsertTemplatePurchase): Promise<TemplatePurchase> {
@@ -419,7 +425,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(templateControls)
       .where(eq(templateControls.templateId, templateId))
-      .orderBy(templateControls.sortOrder);
+      .orderBy(templateControls.orderIndex);
   }
 
   async createTemplateControl(control: InsertTemplateControl): Promise<TemplateControl> {
@@ -482,7 +488,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(templateBundles)
-      .where(eq(templateBundles.isActive, true))
+      .where(eq(templateBundles.isActive, 1))
       .orderBy(desc(templateBundles.createdAt));
   }
 

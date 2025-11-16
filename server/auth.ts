@@ -34,7 +34,6 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Local strategy for email/password authentication
   passport.use(
     new LocalStrategy(
       {
@@ -43,12 +42,11 @@ export async function setupAuth(app: Express) {
       },
       async (email, password, done) => {
         try {
-          const users = await storage.getUserByEmail(email);
-          if (!users || users.length === 0) {
+          const user = await storage.getUserByEmail(email);
+          if (!user) {
             return done(null, false, { message: "Invalid email or password" });
           }
 
-          const user = users[0];
           if (!user.password) {
             return done(null, false, { message: "Invalid email or password" });
           }
@@ -76,7 +74,6 @@ export async function setupAuth(app: Express) {
     }
   });
 
-  // Login route
   app.post("/api/login", (req, res, next) => {
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
@@ -94,7 +91,6 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  // Register route
   app.post("/api/register", async (req, res) => {
     try {
       const { email, password, firstName, lastName } = req.body;
@@ -103,24 +99,21 @@ export async function setupAuth(app: Express) {
         return res.status(400).json({ message: "Email and password required" });
       }
 
-      // Check if user exists
       const existing = await storage.getUserByEmail(email);
-      if (existing && existing.length > 0) {
+      if (existing) {
         return res.status(400).json({ message: "Email already registered" });
       }
 
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create user
       const user = await storage.upsertUser({
+        id: '0',
         email,
         password: hashedPassword,
         firstName: firstName || null,
         lastName: lastName || null,
       });
 
-      // Log them in
       req.login(user, (err) => {
         if (err) {
           return res.status(500).json({ message: "Registration successful but login failed" });
@@ -133,7 +126,6 @@ export async function setupAuth(app: Express) {
     }
   });
 
-  // Logout route
   app.post("/api/logout", (req, res) => {
     req.logout((err) => {
       if (err) {

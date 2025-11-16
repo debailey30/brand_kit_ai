@@ -95,9 +95,9 @@ export default function MarketplacePage() {
 
     // Price filter
     if (priceFilter === "free") {
-      results = results.filter((t) => parseFloat(t.price) === 0);
+      results = results.filter((t) => t.price === 0);
     } else if (priceFilter === "paid") {
-      results = results.filter((t) => parseFloat(t.price) > 0);
+      results = results.filter((t) => t.price > 0);
     }
 
     // Sort
@@ -110,14 +110,14 @@ export default function MarketplacePage() {
         });
         break;
       case "price-low":
-        results.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+        results.sort((a, b) => a.price - b.price);
         break;
       case "price-high":
-        results.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+        results.sort((a, b) => b.price - a.price);
         break;
       case "popular":
       default:
-        results.sort((a, b) => b.salesCount - a.salesCount);
+        results.sort((a, b) => (b.downloadCount || 0) - (a.downloadCount || 0));
         break;
     }
 
@@ -333,12 +333,12 @@ export default function MarketplacePage() {
                     id: template.id,
                     name: template.name,
                     preview: template.previewUrl || "",
-                    price: parseFloat(template.price),
+                    price: template.price,
                     creator: { name: "Creator" }, // TODO: Join with users table
                     category: template.category,
-                    isPremium: parseFloat(template.price) > 0,
-                    rating: template.rating ? parseFloat(template.rating) : 0,
-                    reviewCount: template.reviewCount,
+                    isPremium: template.price > 0,
+                    rating: template.rating ? template.rating : 0,
+                    reviewCount: template.ratingCount || 0,
                   }}
                   onPreview={handlePreview}
                   onPurchase={() => setDetailModalTemplateId(template.id)}
@@ -350,9 +350,7 @@ export default function MarketplacePage() {
 
         {/* Template Detail Modal */}
         <TemplateDetailModal
-          templateId={detailModalTemplateId}
-          open={!!detailModalTemplateId}
-          onClose={() => setDetailModalTemplateId(null)}
+          template={templates?.find(t => t.id === detailModalTemplateId) || null}          open={!!detailModalTemplateId}          onOpenChange={(open) => !open && setDetailModalTemplateId(null)}
           onPurchase={handlePurchase}
         />
       </main>
